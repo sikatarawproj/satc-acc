@@ -6118,6 +6118,12 @@
         }
       });
 
+      const sidebarLogo = document.querySelector(".sidebar-logo");
+      if (sidebarLogo) {
+        sidebarLogo.style.cursor = "pointer";
+        sidebarLogo.addEventListener("click", () => setActiveTab("summarySection"));
+      }
+
       const sortHeaders = document.querySelectorAll("#salesTable thead th[data-sort]");
       sortHeaders.forEach((th) => {
         th.addEventListener("click", () => {
