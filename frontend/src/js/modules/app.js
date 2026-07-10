@@ -379,10 +379,12 @@
       try {
         const accounts = await apiJson("/api/accounts");
         const normalized = Array.isArray(accounts) ? accounts.map(normalizeAuthUser).filter(Boolean) : [];
-        state.authUsers = normalized;
-        localStorage.setItem(`${STORAGE_KEY}-auth-users`, JSON.stringify(normalized));
-        hydrateCurrentUserFromDirectory();
-        return;
+        if (normalized.length > 0) {
+          state.authUsers = normalized;
+          localStorage.setItem(`${STORAGE_KEY}-auth-users`, JSON.stringify(normalized));
+          hydrateCurrentUserFromDirectory();
+          return;
+        }
       } catch (err) {
         console.warn("Could not load auth users from backend, using local data", err);
       }
@@ -802,7 +804,7 @@
       const DATA_VERSION = "2026-v8";
       try {
         const rows = await apiJson("/api/transactions?limit=10000");
-        if (Array.isArray(rows)) {
+        if (Array.isArray(rows) && rows.length > 0) {
           state.transactions = rows;
           localStorage.setItem(`${STORAGE_KEY}-transactions`, JSON.stringify(rows));
           return;
@@ -938,7 +940,7 @@
     async function loadSettings() {
       try {
         const settings = await apiJson("/api/settings");
-        if (settings && typeof settings === "object") {
+        if (settings && typeof settings === "object" && !Array.isArray(settings)) {
           state.settings = { ...DEFAULT_SETTINGS, ...settings };
           localStorage.setItem(`${STORAGE_KEY}-settings`, JSON.stringify(state.settings));
           syncSettingsForm();
@@ -1821,7 +1823,7 @@
     async function loadAuditLog() {
       try {
         const rows = await apiJson("/api/audit?limit=200");
-        if (Array.isArray(rows)) {
+        if (Array.isArray(rows) && rows.length > 0) {
           state.auditLog = rows.slice(0, 50).map(normalizeAuditLogEntry);
           localStorage.setItem(`${STORAGE_KEY}-audit-log`, JSON.stringify(state.auditLog));
           return;
@@ -1862,7 +1864,7 @@
     async function loadCustomerProfiles() {
       try {
         const rows = await apiJson("/api/customers");
-        if (Array.isArray(rows)) {
+        if (Array.isArray(rows) && rows.length > 0) {
           state.customerProfiles = rows
             .filter((item) => item && typeof item === "object" && item.name)
             .map((item) => ({
