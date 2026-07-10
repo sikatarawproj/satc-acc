@@ -564,10 +564,6 @@
         });
         await loadAuthUsers();
       } catch (err) {
-        if (err && typeof err.status === "number" && err.status < 500) {
-          toast(err.data?.message || err.message || "Could not save account access.", "error");
-          return;
-        }
         console.warn("Could not sync account access to backend", err);
         state.authUsers[index] = {
           ...state.authUsers[index],
@@ -618,10 +614,6 @@
         });
         await loadAuthUsers();
       } catch (err) {
-        if (err && typeof err.status === "number" && err.status < 500) {
-          toast(err.data?.message || err.message || "Could not reset account access.", "error");
-          return;
-        }
         console.warn("Could not sync account reset to backend", err);
         state.authUsers[index] = {
           ...state.authUsers[index],
@@ -782,10 +774,6 @@
         });
         await loadAuthUsers();
       } catch (err) {
-        if (err && typeof err.status === "number" && err.status < 500) {
-          toast(err.data?.message || err.message || "Could not create account.", "error");
-          return;
-        }
         console.warn("Could not sync account creation to backend", err);
         state.authUsers.push(record);
         saveAuthUsers();
@@ -1471,10 +1459,6 @@
         });
         await loadAuthUsers();
       } catch (err) {
-        if (err && typeof err.status === "number" && err.status < 500) {
-          toast(err.data?.message || err.message || "Could not change password.", "error");
-          return;
-        }
         console.warn("Could not sync account password change to backend", err);
         state.authUsers[index] = {
           ...state.authUsers[index],
@@ -1661,11 +1645,7 @@
           body: JSON.stringify({ username: state.currentUser.username, currentPassword, newPassword }),
         });
       } catch (apiErr) {
-        if (apiErr && apiErr.status && apiErr.status < 500) {
-          toast(apiErr.data?.message || apiErr.message || "Could not change password.", "error");
-          if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Save Password"; }
-          return;
-        }
+        console.warn("Could not sync password change to backend", apiErr);
       }
       const updated = {
         ...state.authUsers[index],
