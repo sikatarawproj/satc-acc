@@ -59,7 +59,7 @@
             <button type="button" class="login-forgot-btn" id="forgotPasswordBtn" style="display:none">Forgot password?</button>
           </div>
 
-          <button type="submit" class="login-submit-btn" aria-label="Login">
+          <button type="submit" class="login-submit-btn" aria-label="Login" id="loginSubmitBtn">
             <span>Access Dashboard</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </button>
@@ -1288,6 +1288,7 @@
             <div class="soa-v4-actions">
               <button class="btn btn-primary" id="printSoaBtn" type="button">Print / Save as PDF</button>
               <button class="btn btn-secondary" id="soaExportCsvBtn" type="button">Export SOA CSV</button>
+            <button class="btn btn-secondary" id="soaExportXlsxBtn" type="button">Export SOA Excel</button>
             </div>
           </div>
 
@@ -1529,6 +1530,17 @@
                   If you have any questions about this statement, please contact
                   <strong>Tel. #: 0917-5602288 Credit &amp; Collection/Accounting</strong>
                   <strong>Thank You For Your Business!</strong>
+                </div>
+
+                <div class="soa-signature-block">
+                  <div class="soa-signature-field">
+                    <div class="sig-line"><span id="soaPrintPreparedBy">-</span></div>
+                    <div class="sig-label">Prepared By</div>
+                  </div>
+                  <div class="soa-signature-field">
+                    <div class="sig-line"><span id="soaPrintApprovedBy">-</span></div>
+                    <div class="sig-label">Approved By</div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -225,7 +225,6 @@
     }
 
     @media print {
-      @page { margin: 12mm; }
       html, body {
         background: #fff !important;
         -webkit-print-color-adjust: exact;

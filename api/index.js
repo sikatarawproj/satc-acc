@@ -217,6 +217,31 @@ module.exports = async (req, res) => {
       return json(res, { token: 'local-' + user.id, account: { id: user.id, username: user.username, fullName: user.full_name, role: user.role, department: user.department, email: user.email, status: user.status, access: user.access_json, forcePasswordChange: user.force_password_change, profileImage: user.profile_image || '' } });
     }
 
+    // Self-service password change (authenticated via current password, no admin token needed)
+    if (method === 'POST' && path === '/api/auth/change-password') {
+      if (!SUPABASE_URL) return json(res, { error: 'Service unavailable' }, 503);
+      const { username, currentPassword, newPassword } = req.body || {};
+      if (!username || !currentPassword || !newPassword) {
+        logRequest(req, 400);
+        return json(res, { error: 'Missing required fields' }, 400);
+      }
+      if (newPassword.length < 8) {
+        logRequest(req, 400);
+        return json(res, { error: 'New password must be at least 8 characters' }, 400);
+      }
+      const cleanUsername = sanitizeInput(String(username).toLowerCase().trim());
+      const users = await supabaseQuery(`accounts?username=eq.${encodeURIComponent(cleanUsername)}&select=*`);
+      const user = users[0];
+      if (!user || !verifyPassword(currentPassword, user.password_hash || '')) {
+        logRequest(req, 401);
+        return json(res, { error: 'Current password is incorrect' }, 401);
+      }
+      const newHash = hashPassword(newPassword, generateSalt());
+      await supabaseQuery(`accounts?id=eq.${user.id}`, 'PATCH', { password_hash: newHash, force_password_change: false, updated_at: new Date().toISOString() });
+      logRequest(req, 200);
+      return json(res, { ok: true });
+    }
+
     // All other endpoints require Supabase
     if (!SUPABASE_URL) return json(res, { error: 'Service unavailable' }, 503);
 

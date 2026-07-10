@@ -1616,7 +1616,7 @@
       });
     }
 
-    function saveOwnPasswordChange() {
+    async function saveOwnPasswordChange() {
       if (!state.currentUser?.username) {
         toast("No active user found.", "error");
         return;
@@ -1631,11 +1631,6 @@
       }
       if (!currentPassword) {
         toast("Current password is required.", "warning");
-        els.profileCurrentPassword?.focus();
-        return;
-      }
-      if (target.password && target.password !== currentPassword) {
-        toast("Current password is incorrect.", "error");
         els.profileCurrentPassword?.focus();
         return;
       }
@@ -1658,6 +1653,20 @@
       if (index < 0) {
         toast("Account index not found.", "error");
         return;
+      }
+      const saveBtn = document.querySelector("#profilePasswordForm button[type='submit'], #profilePasswordSaveBtn");
+      if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Saving..."; }
+      try {
+        await apiJson("/api/auth/change-password", {
+          method: "POST",
+          body: JSON.stringify({ username: state.currentUser.username, currentPassword, newPassword }),
+        });
+      } catch (apiErr) {
+        if (apiErr && apiErr.status && apiErr.status < 500) {
+          toast(apiErr.data?.message || apiErr.message || "Could not change password.", "error");
+          if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Save Password"; }
+          return;
+        }
       }
       const updated = {
         ...state.authUsers[index],
@@ -1682,6 +1691,7 @@
         entityId: updated.username || "",
         customer: updated.fullName || "",
       });
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Save Password"; }
       toast("Password updated successfully", "success", "Use the new password on your next login.");
       closeProfileModal();
     }
@@ -1770,6 +1780,8 @@
       const remember = !!els.loginRemember?.checked;
       let user = null;
       let token = null;
+      const loginBtn = els.loginSubmitBtn;
+      if (loginBtn) { loginBtn.disabled = true; loginBtn.classList.add("is-loading"); }
 
       // Try API login first
       try {
@@ -1796,6 +1808,7 @@
       }
 
       if (!user) {
+        if (loginBtn) { loginBtn.disabled = false; loginBtn.classList.remove("is-loading"); }
         toast("Invalid username or password", "error", "Use the office credentials assigned to your account.");
         if (els.loginPassword) {
           els.loginPassword.select?.();
@@ -1808,6 +1821,7 @@
       setActiveTab("summarySection");
       if (els.loginPassword) els.loginPassword.value = "";
       if (els.loginRemember) els.loginRemember.checked = remember;
+      if (loginBtn) { loginBtn.disabled = false; loginBtn.classList.remove("is-loading"); }
       toast(`Welcome, ${user.fullName}`, "success", `Signed in as ${user.role}.`);
       renderSalesTable();
       renderStats();
@@ -4014,6 +4028,27 @@
       exportCsv(rows, `statement-of-account-${normalize(state.selectedCustomer || "customer") || "customer"}-${todayISO()}.csv`);
     }
 
+    function exportSoaXlsx() {
+      const rows = getFilteredModernSoaRows().map((tx) => {
+        const status = getSoaModernStatus(tx);
+        return {
+          Date: tx.date || "",
+          "Document Type": formatDocTypeLabel(tx.docType || "DR"),
+          "Invoice #": tx.invNo || "",
+          "PO #": tx.poNumber || "",
+          Customer: tx.customer || "",
+          "Debit Sales": Number(tx.netDeduction ?? tx.netSales ?? tx.gross ?? 0).toFixed(2),
+          "Credit Payment": Number(tx.payment || 0).toFixed(2),
+          Balance: Math.max(Number(tx.receivable || 0), 0).toFixed(2),
+          Status: status.label,
+          "Due Date": tx.dueDate || "",
+          "Payment Date": tx.paymentDate || "",
+          "Collection Receipt #": tx.collectionReceiptNo || "",
+        };
+      });
+      exportXlsx(rows, `statement-of-account-${normalize(state.selectedCustomer || "customer") || "customer"}-${todayISO()}.xlsx`, "SOA");
+    }
+
     function generateSoa(customerName, announce = true) {
       const customer = customerName || els.soaCustomerSelect.value;
       state.selectedCustomer = customer;
@@ -4041,6 +4076,8 @@
       if (els.soaPrintMeta) {
         els.soaPrintMeta.textContent = `Customer: ${customer || "-"} | SOA No.: ${state.soaHeader.soaNo || "-"} | Generated: ${printStamp}`;
       }
+      if (els.soaPrintPreparedBy) els.soaPrintPreparedBy.textContent = state.soaHeader.preparedBy || state.settings.defaultPreparedBy || "-";
+      if (els.soaPrintApprovedBy) els.soaPrintApprovedBy.textContent = state.soaHeader.approvedBy || state.settings.defaultApprovedBy || "-";
       els.soaPreviewCustomer.textContent = customer || "-";
       applySoaLogoPreview();
       populateSoaTransactionSelect(rows);
@@ -5863,6 +5900,7 @@
 
       els.generateSoaBtn.addEventListener("click", () => generateSoa(els.soaCustomerSelect.value, true));
       if (els.soaExportCsvBtn) els.soaExportCsvBtn.addEventListener("click", exportSoaCsv);
+      if (els.soaExportXlsxBtn) els.soaExportXlsxBtn.addEventListener("click", exportSoaXlsx);
       if (els.soaTransactionSearch) els.soaTransactionSearch.addEventListener("input", renderSoaModernRows);
       if (els.soaShowFilter) els.soaShowFilter.addEventListener("change", renderSoaModernRows);
       if (els.soaDateFrom) els.soaDateFrom.addEventListener("change", () => generateSoa(els.soaCustomerSelect.value, false));
