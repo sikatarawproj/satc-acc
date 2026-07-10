@@ -3,7 +3,7 @@ const crypto = require('crypto');
 // ============ CONFIGURATION ============
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const ALLOWED_ORIGINS = ['https://satc-accounting-qnpc.vercel.app', 'http://localhost:3000'];
+const ALLOWED_ORIGINS = ['https://satc-acc.vercel.app', 'http://localhost:3000'];
 const MAX_BODY_SIZE = 1024 * 1024; // 1MB
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX = 30; // requests per window

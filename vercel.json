@@ -36,6 +36,10 @@
       "dest": "/data/$1"
     },
     {
+      "src": "/frontend/(.*)",
+      "dest": "/frontend/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
