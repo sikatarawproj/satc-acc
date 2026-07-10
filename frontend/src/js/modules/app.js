@@ -88,8 +88,8 @@
     }
 
     function getCustomerSnapshot(name) {
-      const customer = normalize(name);
-      const profile = [...state.customerProfiles].reverse().find((item) => normalize(item.name) === customer);
+      const customer = customerGroupKey(name);
+      const profile = [...state.customerProfiles].reverse().find((item) => customerGroupKey(item.name) === customer);
       if (profile) {
         return {
           address: profile.address || "",
@@ -104,7 +104,7 @@
           source: "profile",
         };
       }
-      const match = [...state.transactions].reverse().find((tx) => normalize(tx.customer) === customer);
+      const match = [...state.transactions].reverse().find((tx) => customerGroupKey(tx.customer) === customer);
       return match ? {
         address: match.customerAddress || "",
         tin: match.customerTin || "",
@@ -135,6 +135,18 @@
 
     function normalize(str) {
       return String(str || "").trim().toLowerCase();
+    }
+
+    function customerGroupKey(name) {
+      const cleaned = normalize(name).replace(/[.,'"]/g, "").replace(/\s+/g, " ").trim();
+      if (!cleaned) return "";
+      if (cleaned.startsWith("bistro") || cleaned.startsWith("bistronomia")) return "group:bistro";
+      return cleaned;
+    }
+
+    function sameCustomerGroup(a, b) {
+      const left = customerGroupKey(a);
+      return !!left && left === customerGroupKey(b);
     }
 
     function parseJsonMaybe(value) {
@@ -1735,6 +1747,7 @@
               remarks: String(item.remarks || ""),
               updatedAt: String(item.updatedAt || ""),
             }));
+          state.customerProfiles = dedupeCustomerProfiles(state.customerProfiles);
           localStorage.setItem(`${STORAGE_KEY}-customer-profiles`, JSON.stringify(state.customerProfiles));
           return;
         }
@@ -1744,7 +1757,8 @@
       try {
         const raw = localStorage.getItem(`${STORAGE_KEY}-customer-profiles`);
         if (raw) {
-          state.customerProfiles = JSON.parse(raw);
+          state.customerProfiles = dedupeCustomerProfiles(JSON.parse(raw));
+          localStorage.setItem(`${STORAGE_KEY}-customer-profiles`, JSON.stringify(state.customerProfiles));
         } else {
           state.customerProfiles = [];
         }
@@ -1758,7 +1772,7 @@
       const profiles = new Map();
       sourceTransactions.forEach((tx) => {
         if (!tx?.customer) return;
-        const key = normalize(tx.customer);
+        const key = customerGroupKey(tx.customer);
         if (!profiles.has(key)) profiles.set(key, deriveCustomerProfile(tx));
         else {
           const current = profiles.get(key);
@@ -1784,9 +1798,9 @@
     }
 
     function upsertCustomerProfile(profile) {
-      const normalizedName = normalize(profile?.name);
+      const normalizedName = customerGroupKey(profile?.name);
       if (!normalizedName) return false;
-      const idx = state.customerProfiles.findIndex((item) => normalize(item.name) === normalizedName);
+      const idx = state.customerProfiles.findIndex((item) => customerGroupKey(item.name) === normalizedName);
       const next = {
         name: profile.name || "",
         address: profile.address || "",
@@ -1821,6 +1835,45 @@
         bankDetails: tx.bankDetails || "",
         remarks: tx.otherRemarks || "",
       });
+    }
+
+    function dedupeCustomerProfiles(profiles = []) {
+      const seen = new Map();
+      (Array.isArray(profiles) ? profiles : []).forEach((profile) => {
+        const name = String(profile?.name || profile?.customerName || profile?.customer_name || "").trim();
+        const key = customerGroupKey(name);
+        if (!key) return;
+        const current = seen.get(key) || {};
+        seen.set(key, {
+          ...current,
+          ...profile,
+          name: current.name || name,
+          address: current.address || profile.address || "",
+          tin: current.tin || profile.tin || "",
+          contactPerson: current.contactPerson || profile.contactPerson || "",
+          contactNumber: current.contactNumber || profile.contactNumber || "",
+          email: current.email || profile.email || "",
+          paymentTerms: current.paymentTerms || profile.paymentTerms || "30",
+          modeOfPayment: current.modeOfPayment || profile.modeOfPayment || "",
+          bankDetails: current.bankDetails || profile.bankDetails || "",
+          remarks: current.remarks || profile.remarks || "",
+          updatedAt: current.updatedAt || profile.updatedAt || "",
+        });
+      });
+      return [...seen.values()];
+    }
+
+    function collectUniqueCustomerNames(transactions = state.transactions) {
+      const names = new Map();
+      const addName = (name) => {
+        const display = String(name || "").trim();
+        const key = normalize(display);
+        if (!key || names.has(key)) return;
+        names.set(key, display);
+      };
+      (state.customerProfiles || []).forEach((profile) => addName(profile.name));
+      (Array.isArray(transactions) ? transactions : []).forEach((tx) => addName(tx.customer));
+      return [...names.values()].sort((a, b) => a.localeCompare(b));
     }
 
     function loadSoaHeader() {
@@ -1920,10 +1973,7 @@
     }
 
     function getCustomers() {
-      const names = new Set();
-      state.customerProfiles.forEach((profile) => { const n = (profile.name || "").trim(); if (n) names.add(n); });
-      state.transactions.forEach((tx) => { const n = (tx.customer || "").trim(); if (n) names.add(n); });
-      return [...names].sort((a, b) => a.localeCompare(b));
+      return collectUniqueCustomerNames(state.transactions);
     }
 
     function renderCustomerList() {
@@ -2409,12 +2459,12 @@
     function getFilteredTransactions() {
       if (!els.monthFilter) return [];
       const searchTerm = normalize(els.dashboardSearch?.value || "");
-      const customer = normalize(els.customerFilter?.value || "all");
+      const customer = customerGroupKey(els.customerFilter?.value || "all");
       const month = els.monthFilter.value;
       const statusFilter = els.statusFilter?.value || "all";
       let rows = state.transactions.slice();
       if (customer && customer !== "all") {
-        rows = rows.filter((tx) => normalize(tx.customer || "") === customer);
+        rows = rows.filter((tx) => customerGroupKey(tx.customer || "") === customer);
       }
       if (month !== "all") {
         rows = rows.filter((tx) => String(new Date(tx.date + "T00:00:00").getMonth() + 1) === month);
@@ -2466,10 +2516,7 @@
     function populateCustomerFilter(selectedValue = null) {
       if (!els.customerFilter) return;
       const current = selectedValue ?? els.customerFilter.value ?? "all";
-      const names = [...new Set((state.transactions || [])
-        .map((tx) => normalize(tx.customer || "").trim())
-        .filter(Boolean))]
-        .sort((a, b) => a.localeCompare(b));
+      const names = collectUniqueCustomerNames(state.transactions || []);
       els.customerFilter.innerHTML = '<option value="all">All Customers</option>' + names.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
       els.customerFilter.value = names.includes(current) ? current : "all";
     }
@@ -2652,12 +2699,12 @@
 
     function getStatsTransactions() {
       if (!els.monthFilter) return [];
-      const customer = normalize(els.customerFilter?.value || "all");
+      const customer = customerGroupKey(els.customerFilter?.value || "all");
       const month = els.monthFilter.value;
       const statusFilter = els.statusFilter?.value || "all";
       let rows = state.transactions.slice();
       if (customer && customer !== "all") {
-        rows = rows.filter((tx) => normalize(tx.customer || "") === customer);
+        rows = rows.filter((tx) => customerGroupKey(tx.customer || "") === customer);
       }
       if (month !== "all") {
         rows = rows.filter((tx) => String(new Date(tx.date + "T00:00:00").getMonth() + 1) === month);
@@ -3052,7 +3099,7 @@
 
       (state.transactions || []).forEach(tx => {
         if (!tx.date || !tx.customer) return;
-        if (normalize(tx.customer) !== normalize(customer)) return;
+        if (!sameCustomerGroup(tx.customer, customer)) return;
         const d = new Date(tx.date);
         if (isNaN(d.getTime()) || d.getFullYear() !== year) return;
         const m = d.getMonth();
@@ -3725,7 +3772,7 @@
 
     function saveSelectedSoaTransaction() {
       const customer = els.soaCustomerSelect.value;
-      const rows = state.transactions.filter((tx) => tx.customer === customer);
+      const rows = state.transactions.filter((tx) => sameCustomerGroup(tx.customer, customer));
       const selected = getSelectedSoaTransaction(rows);
       if (!selected) {
         alert("Select a transaction first.");
@@ -3771,7 +3818,7 @@
 
     function cancelSelectedSoaInvoice() {
       const customer = els.soaCustomerSelect.value;
-      const rows = state.transactions.filter((tx) => tx.customer === customer);
+      const rows = state.transactions.filter((tx) => sameCustomerGroup(tx.customer, customer));
       const selected = getSelectedSoaTransaction(rows);
       if (!selected) {
         toast("Select a transaction first.", "warning");
@@ -4053,7 +4100,7 @@
       const dateTo = els.soaDateTo?.value || "";
       const sectionFilter = document.getElementById("soaSectionFilter")?.value || "ALL";
       return state.transactions
-        .filter((tx) => tx.customer === customer)
+        .filter((tx) => sameCustomerGroup(tx.customer, customer))
         .filter((tx) => sectionFilter === "ALL" || tx.section === sectionFilter)
         .filter((tx) => !dateFrom || String(tx.date || "") >= dateFrom)
         .filter((tx) => !dateTo || String(tx.date || "") <= dateTo)
@@ -5266,10 +5313,10 @@
         });
       }
       if (Array.isArray(imported.customerProfiles) && imported.customerProfiles.length) {
-        const currentCustomerMap = new Map((state.customerProfiles || []).map((profile) => [normalize(profile.name || profile.customerName || profile.customer_name || ""), profile]));
+        const currentCustomerMap = new Map((state.customerProfiles || []).map((profile) => [customerGroupKey(profile.name || profile.customerName || profile.customer_name || ""), profile]));
         const seenCustomer = new Set();
         imported.customerProfiles.forEach((profile) => {
-          const key = normalize(profile.name || profile.customerName || profile.customer_name || "");
+          const key = customerGroupKey(profile.name || profile.customerName || profile.customer_name || "");
           if (!key) return;
           if (seenCustomer.has(key)) {
             conflict.customerDuplicates.push(profile.name || profile.customerName || profile.customer_name);
@@ -6138,7 +6185,7 @@
           openAgingDetailModal(filter);
         });
       }
-      els.soaLoadTxBtn.addEventListener("click", () => loadSoaTransactionIntoEditor(getSelectedSoaTransaction(state.transactions.filter((tx) => tx.customer === els.soaCustomerSelect.value))));
+      els.soaLoadTxBtn.addEventListener("click", () => loadSoaTransactionIntoEditor(getSelectedSoaTransaction(state.transactions.filter((tx) => sameCustomerGroup(tx.customer, els.soaCustomerSelect.value)))));
       els.soaSaveTxBtn.addEventListener("click", saveSelectedSoaTransaction);
       els.soaCancelInvoiceBtn.addEventListener("click", cancelSelectedSoaInvoice);
 
@@ -6165,7 +6212,7 @@
         });
       }
       els.soaTransactionSelect.addEventListener("change", () => {
-        const rows = state.transactions.filter((tx) => tx.customer === els.soaCustomerSelect.value);
+        const rows = state.transactions.filter((tx) => sameCustomerGroup(tx.customer, els.soaCustomerSelect.value));
         loadSoaTransactionIntoEditor(getSelectedSoaTransaction(rows));
       });
 
@@ -6690,10 +6737,7 @@
 
     const phase8OriginalGetCustomers = getCustomers;
     getCustomers = function phase8GetCustomers() {
-      const names = new Set();
-      state.customerProfiles.forEach((profile) => names.add(profile.name));
-      phase8ActiveTransactions(state.transactions).forEach((tx) => names.add(tx.customer));
-      return [...names].filter(Boolean).sort((a, b) => a.localeCompare(b));
+      return collectUniqueCustomerNames(phase8ActiveTransactions(state.transactions));
     };
 
     const phase8OriginalGetFilteredTransactions = getFilteredTransactions;
@@ -7092,7 +7136,7 @@
 
     saveSelectedSoaTransaction = function phase8SaveSelectedSoaTransaction() {
       const customer = els.soaCustomerSelect.value;
-      const rows = state.transactions.filter((tx) => tx.customer === customer && !tx.isDeleted);
+      const rows = state.transactions.filter((tx) => sameCustomerGroup(tx.customer, customer) && !tx.isDeleted);
       const selected = getSelectedSoaTransaction(rows);
       if (!selected) {
         alert("Select a transaction first.");
