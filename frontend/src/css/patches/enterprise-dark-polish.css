@@ -2396,9 +2396,6 @@ body:not(.auth-locked) #encodeSection .encode-items-table-v3 td {
 body:not(.auth-locked) #encodeSection .encode-items-wrap-v3 {
   overflow-x: visible !important;
 }
-  background: rgba(255, 255, 255, 0.03) !important;
-  border-color: var(--p14-line) !important;
-}
 
 body:not(.auth-locked) #encodeSection .tx-summary-item .label {
   color: var(--p14-muted) !important;
@@ -2853,6 +2850,61 @@ body:not(.auth-locked) #summarySection .summary-table-meta .notice {
   font-size: 12px;
   color: var(--p14-muted);
 }
+
+.db-customer-trend-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.db-customer-trend-controls .field {
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: var(--p14-radius-md);
+  border: 1px solid var(--p14-line);
+  background: var(--p14-bg);
+  color: var(--p14-ink);
+}
+.db-customer-trend-card {
+  margin-top: 20px;
+}
+.db-trend-table-wrap {
+  margin-top: 14px;
+  overflow-x: auto;
+}
+.db-trend-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.db-trend-table th,
+.db-trend-table td {
+  padding: 4px 8px;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--p14-line);
+}
+.db-trend-table th {
+  font-weight: 700;
+  color: var(--p14-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.db-trend-table td:first-child,
+.db-trend-table th:first-child {
+  text-align: left;
+}
+.db-trend-table tbody tr:hover {
+  background: var(--p14-hover);
+}
+.db-trend-table tfoot td {
+  border-top: 2px solid var(--p14-line);
+  border-bottom: none;
+  font-weight: 700;
+}
+.db-trend-table td.c-paid { color: #22c55e; }
+.db-trend-table td.c-pastdue { color: #ef4444; }
+.db-trend-table td.c-notdue { color: #3b82f6; }
 
 .db-chart-mtd {
   display: flex;

@@ -3548,6 +3548,8 @@
 
     .aging-filter-btn.cancelled.active { background: #64748b; }
     .aging-filter-btn.cancelled .dot { background: #64748b; }
+
+    .aging-filter-btn.warning.active {
       background: #ffc83d;
       color: #1d1d1d;
     }
@@ -4955,5 +4957,5 @@
         display: none !important;
       }
     }
-  
-
+
+

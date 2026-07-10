@@ -2819,9 +2819,10 @@
       renderStatusBreakdown(txs);
       updateSvgRings(activeTxs, totals);
       renderRecentActivity();
+      renderCustomerPaymentTrend();
     }
 
-    function showTooltip(x, y, label, value) {
+    function showTooltip(x, y, label, value, valueAsHtml = false) {
       let tooltip = document.getElementById("chartTooltip");
       if (!tooltip) {
         tooltip = document.createElement("div");
@@ -2831,7 +2832,9 @@
         document.body.appendChild(tooltip);
       }
       tooltip.querySelector(".tooltip-label").textContent = label;
-      tooltip.querySelector(".tooltip-value").textContent = value;
+      const valueEl = tooltip.querySelector(".tooltip-value");
+      if (valueAsHtml) valueEl.innerHTML = value;
+      else valueEl.textContent = value;
       tooltip.style.left = (x + 12) + "px";
       tooltip.style.top = (y - 10) + "px";
       tooltip.style.display = "block";
@@ -3007,6 +3010,190 @@
           <span class="db-activity-time">${escapeHtml(time)}</span>
         </div>`;
       }).join("");
+    }
+
+    function renderCustomerPaymentTrend() {
+      const canvas = document.getElementById("customerTrendChart");
+      const select = document.getElementById("customerTrendSelect");
+      const yearSelect = document.getElementById("customerTrendYear");
+      if (!canvas || !select || !yearSelect) return;
+
+      const currentYear = new Date().getFullYear();
+      const years = [];
+      (state.transactions || []).forEach(tx => {
+        if (tx.date) {
+          const y = new Date(tx.date).getFullYear();
+          if (!isNaN(y) && !years.includes(y)) years.push(y);
+        }
+      });
+      years.sort((a, b) => b - a);
+      if (!years.length) years.push(currentYear);
+      const previousYear = parseInt(yearSelect.value, 10);
+      const selectedYear = years.includes(previousYear) ? previousYear : (years.includes(currentYear) ? currentYear : years[0]);
+      yearSelect.innerHTML = years.map(y => `<option value="${y}"${y === selectedYear ? " selected" : ""}>${y}</option>`).join("");
+
+      const customers = getCustomers();
+      const previousCustomer = select.value;
+      const selectedCustomer = customers.includes(previousCustomer) ? previousCustomer : customers[0];
+      select.innerHTML = customers.map(c => `<option value="${escapeHtml(c)}"${c === selectedCustomer ? " selected" : ""}>${escapeHtml(c)}</option>`).join("");
+
+      const customer = select.value;
+      const year = parseInt(yearSelect.value, 10) || selectedYear;
+      if (!customer) {
+        const ctx = canvas.getContext("2d");
+        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const wrap = document.getElementById("customerTrendTableWrap");
+        if (wrap) wrap.innerHTML = "";
+        return;
+      }
+
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const monthlyData = months.map(() => ({ paid: 0, pastDue: 0, notDue: 0, gross: 0 }));
+
+      (state.transactions || []).forEach(tx => {
+        if (!tx.date || !tx.customer) return;
+        if (normalize(tx.customer) !== normalize(customer)) return;
+        const d = new Date(tx.date);
+        if (isNaN(d.getTime()) || d.getFullYear() !== year) return;
+        const m = d.getMonth();
+        const gross = Number(tx.gross || 0);
+        const netSales = Number(tx.netSales || 0);
+        const receivable = Math.max(Number(tx.receivable || 0), 0);
+        const status = (tx.status || "").toUpperCase();
+
+        monthlyData[m].gross += gross;
+        if (status === "PAID") {
+          monthlyData[m].paid += netSales > 0 ? netSales : receivable;
+        } else if (status === "PASTDUE") {
+          monthlyData[m].pastDue += receivable;
+        } else if (status === "NOTDUE" || status === "PARTIAL_PAYMENT") {
+          monthlyData[m].notDue += receivable;
+        }
+      });
+
+      drawCustomerTrendChart(canvas, months, monthlyData);
+      renderCustomerTrendTable(monthlyData);
+
+      if (!select._trendListener) {
+        select._trendListener = true;
+        const handler = () => renderCustomerPaymentTrend();
+        select.addEventListener("change", handler);
+        yearSelect.addEventListener("change", handler);
+      }
+    }
+
+    function drawCustomerTrendChart(canvas, months, data) {
+      const ctx = canvas.getContext("2d");
+      const parentWidth = canvas.parentElement ? canvas.parentElement.clientWidth : canvas.clientWidth;
+      const w = canvas.width = Math.max((parentWidth || 680) - 40, 320);
+      const h = canvas.height = 220;
+      ctx.clearRect(0, 0, w, h);
+
+      const maxVal = Math.max(...data.map(m => m.paid + m.pastDue + m.notDue), 1);
+      const pad = { top: 20, right: 20, bottom: 40, left: 60 };
+      const cw = w - pad.left - pad.right;
+      const ch = h - pad.top - pad.bottom;
+      const barW = Math.min(40, cw / 12 - 8);
+      const gap = (cw - barW * 12) / 13;
+
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 1;
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "11px system-ui, sans-serif";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      const steps = 4;
+      for (let i = 0; i <= steps; i++) {
+        const val = (maxVal / steps) * i;
+        const y = pad.top + ch - (ch / steps) * i;
+        ctx.fillText(formatCurrency(val), pad.left - 8, y);
+        if (i > 0) {
+          ctx.strokeStyle = "#f1f5f9";
+          ctx.beginPath();
+          ctx.moveTo(pad.left + 1, y);
+          ctx.lineTo(pad.left + cw, y);
+          ctx.stroke();
+        }
+      }
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.beginPath();
+      ctx.moveTo(pad.left, pad.top);
+      ctx.lineTo(pad.left, pad.top + ch);
+      ctx.lineTo(pad.left + cw, pad.top + ch);
+      ctx.stroke();
+
+      const colors = { paid: "#22c55e", pastDue: "#ef4444", notDue: "#3b82f6" };
+      const barData = [];
+
+      data.forEach((m, i) => {
+        const x = pad.left + gap + i * (barW + gap);
+        let yOff = 0;
+        const segments = [];
+        ["paid", "pastDue", "notDue"].forEach(key => {
+          const val = m[key];
+          if (val <= 0) return;
+          const barH = (val / maxVal) * ch;
+          const y = pad.top + ch - yOff - barH;
+          ctx.fillStyle = colors[key];
+          ctx.fillRect(x, y, barW, barH);
+          if (key === "paid" && barH > 2) {
+            ctx.fillStyle = "#16a34a";
+            ctx.fillRect(x, y, barW, 2);
+          }
+          segments.push({ key, val, y, h: barH });
+          yOff += barH;
+        });
+        barData.push({ x, w: barW, segments, month: months[i] });
+      });
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "11px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      months.forEach((m, i) => {
+        const x = pad.left + gap + i * (barW + gap) + barW / 2;
+        ctx.fillText(m, x, pad.top + ch + 6);
+      });
+
+      canvas._trendBarData = barData;
+      canvas._trendColors = colors;
+      canvas.onmousemove = e => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const bars = canvas._trendBarData;
+        if (!bars) return;
+        const found = bars.find(b => mx >= b.x && mx <= b.x + b.w);
+        if (found) {
+          let val = `<strong>${found.month}</strong><br>`;
+          const colors2 = canvas._trendColors;
+          found.segments.forEach(s => {
+            val += `<span style="color:${colors2[s.key]}">●</span> ${s.key === "paid" ? "Paid" : s.key === "pastDue" ? "Past Due" : "Not Due"}: ${formatCurrency(s.val)}<br>`;
+          });
+          showTooltip(e.clientX, e.clientY, found.month, val.replace(/<br>$/, ""), true);
+        } else {
+          hideTooltip();
+        }
+      };
+      canvas.onmouseleave = () => hideTooltip();
+    }
+
+    function renderCustomerTrendTable(data) {
+      const wrap = document.getElementById("customerTrendTableWrap");
+      if (!wrap) return;
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      let totGross = 0, totPaid = 0, totPastDue = 0, totNotDue = 0;
+      let html = `<table class="db-trend-table"><thead><tr><th>Month</th><th>Gross</th><th>Paid</th><th>Past Due</th><th>Not Due</th><th>Rate</th></tr></thead><tbody>`;
+      data.forEach((m, i) => {
+        totGross += m.gross; totPaid += m.paid; totPastDue += m.pastDue; totNotDue += m.notDue;
+        const total = m.paid + m.pastDue + m.notDue;
+        const rate = total > 0 ? (m.paid / total * 100) : 0;
+        html += `<tr><td>${months[i]}</td><td>${formatCurrency(m.gross)}</td><td class="c-paid">${formatCurrency(m.paid)}</td><td class="c-pastdue">${formatCurrency(m.pastDue)}</td><td class="c-notdue">${formatCurrency(m.notDue)}</td><td>${rate.toFixed(1)}%</td></tr>`;
+      });
+      const allTotal = totPaid + totPastDue + totNotDue;
+      const totRate = allTotal > 0 ? (totPaid / allTotal * 100) : 0;
+      html += `</tbody><tfoot><tr><td><strong>Total</strong></td><td><strong>${formatCurrency(totGross)}</strong></td><td class="c-paid"><strong>${formatCurrency(totPaid)}</strong></td><td class="c-pastdue"><strong>${formatCurrency(totPastDue)}</strong></td><td class="c-notdue"><strong>${formatCurrency(totNotDue)}</strong></td><td><strong>${totRate.toFixed(1)}%</strong></td></tr></tfoot></table>`;
+      wrap.innerHTML = html;
     }
 
     function renderSalesBarChart(txs) {

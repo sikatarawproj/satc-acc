@@ -145,10 +145,6 @@
       color: var(--muted);
       line-height: 1.3;
     }
-      color: #64748b;
-      font-size: 13px;
-      line-height: 1.35;
-    }
 
     .summary-icon-badge {
       width: 42px;
@@ -479,5 +475,5 @@
       .summary-dashboard-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
 
-  
-
+
+

@@ -707,6 +707,21 @@
             </div>
           </div>
 
+          <div class="db-chart-card db-customer-trend-card">
+            <div class="db-chart-card-header">
+              <div>
+                <div class="db-chart-card-title">Customer Payment Trend</div>
+                <div class="db-chart-card-sub">Monthly paid, past due, and not due breakdown per customer</div>
+              </div>
+              <div class="db-customer-trend-controls">
+                <select id="customerTrendSelect" class="field" style="min-width:200px;"></select>
+                <select id="customerTrendYear" class="field" style="min-width:100px;"></select>
+              </div>
+            </div>
+            <canvas id="customerTrendChart" height="220"></canvas>
+            <div id="customerTrendTableWrap" class="db-trend-table-wrap"></div>
+          </div>
+
           <div class="db-activity-widget" id="recentActivity">
             <div class="db-chart-card-header">
               <div>
