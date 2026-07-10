@@ -392,7 +392,12 @@
         const raw = localStorage.getItem(`${STORAGE_KEY}-auth-users`);
         if (raw) {
           const parsed = JSON.parse(raw);
-          state.authUsers = Array.isArray(parsed) ? parsed.map(normalizeAuthUser).filter(Boolean) : [];
+          const mapped = Array.isArray(parsed) ? parsed.map(normalizeAuthUser).filter(Boolean) : [];
+          if (mapped.length > 0) {
+            state.authUsers = mapped;
+          } else {
+            state.authUsers = getDefaultAuthUsers();
+          }
         } else {
           state.authUsers = getDefaultAuthUsers();
         }
@@ -817,8 +822,11 @@
         if (savedVersion === DATA_VERSION) {
           const raw = localStorage.getItem(`${STORAGE_KEY}-transactions`);
           if (raw) {
-            state.transactions = JSON.parse(raw);
-            return;
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              state.transactions = parsed;
+              return;
+            }
           }
         }
         localStorage.removeItem(`${STORAGE_KEY}-transactions`);
