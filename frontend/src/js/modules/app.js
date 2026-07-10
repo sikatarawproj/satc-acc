@@ -2204,9 +2204,33 @@
       if (els.summaryEditBankDetails) els.summaryEditBankDetails.value = tx.bankDetails || "";
       if (els.summaryEditOtherRemarks) els.summaryEditOtherRemarks.value = tx.otherRemarks || "";
       setSummaryEditBadges(tx);
+      syncSummaryEditPaymentHelper();
       document.querySelectorAll("#salesTable tbody tr").forEach((tr) => {
         tr.classList.toggle("row-selected", tr.dataset.invNo === tx.invNo);
       });
+    }
+
+    function syncSummaryEditPaymentHelper() {
+      if (!els.summaryEditPaymentHelper) return;
+      const gross = Number(els.summaryEditGross?.value || 0);
+      const freight = Number(els.summaryEditFreight?.value || 0);
+      const returnsDisc = Number(els.summaryEditReturns?.value || 0);
+      const ewt = Number(els.summaryEditEwt?.value || 0);
+      const payment = Number(els.summaryEditPayment?.value || 0);
+      const status = els.summaryEditStatus?.value || "NOTDUE";
+      const netSales = Math.max(gross + freight - returnsDisc - ewt, 0);
+      if (status === "PAID" && netSales > 0) {
+        const filled = payment <= 0 ? netSales : payment;
+        els.summaryEditPaymentHelper.textContent = `Fully paid \u2014 ${formatCurrency(filled)}`;
+        els.summaryEditPaymentHelper.className = "summary-edit-payment-helper is-paid";
+      } else if (status === "PARTIAL_PAYMENT" && payment > 0 && netSales > 0) {
+        const receivable = Math.max(netSales - payment, 0);
+        els.summaryEditPaymentHelper.textContent = `${formatCurrency(payment)} paid out of ${formatCurrency(netSales)} \u2014 Balance: ${formatCurrency(receivable)}`;
+        els.summaryEditPaymentHelper.className = "summary-edit-payment-helper is-partial";
+      } else {
+        els.summaryEditPaymentHelper.textContent = "";
+        els.summaryEditPaymentHelper.className = "summary-edit-payment-helper";
+      }
     }
 
     function updateSummaryEditDueDate() {
@@ -2704,7 +2728,13 @@
                   ? "status-pastdue"
                   : "status-notdue";
           badge.className = `status ${statusClass}`;
-          badge.textContent = tx.status === "PARTIAL_PAYMENT" ? "PARTIAL PAYMENT" : tx.status;
+          if (tx.status === "PAID") {
+            badge.textContent = `Paid \u2022 ${formatCurrency(tx.payment)}`;
+          } else if (tx.status === "PARTIAL_PAYMENT") {
+            badge.textContent = `${formatCurrency(tx.payment)} out of ${formatCurrency(tx.netSales)}`;
+          } else {
+            badge.textContent = tx.status === "NOTDUE" ? "NOT DUE" : tx.status;
+          }
           if (tx.isCancelled && tx.cancellationReason) badge.title = tx.cancellationReason;
           statusCell.appendChild(badge);
           const actionsCell = tr.querySelector('[data-key="actions"]');
@@ -3699,8 +3729,27 @@
       const netAmount = roundMoney(gross - returnsDisc);
       const netDeduction = roundMoney(gross + freight - returnsDisc);
       const netSales = roundMoney(netDeduction - ewt);
-      const payment = status === "PAID" && paymentRaw <= 0 ? netSales : paymentRaw;
+      let payment = status === "PAID" && paymentRaw <= 0 ? netSales : paymentRaw;
+      if (status === "PAID" && paymentRaw <= 0 && netSales > 0) {
+        els.encodePayment.value = netSales.toFixed(2);
+        payment = netSales;
+      }
       const receivable = Math.max(netSales - payment, 0);
+      if (els.encodePaymentHelper) {
+        if (status === "PAID" && netSales > 0) {
+          els.encodePaymentHelper.textContent = `Fully paid \u2014 ${formatCurrency(payment)}`;
+          els.encodePaymentHelper.className = "encode-payment-helper is-paid";
+        } else if (status === "PARTIAL_PAYMENT" && payment > 0 && netSales > 0) {
+          els.encodePaymentHelper.textContent = `${formatCurrency(payment)} paid out of ${formatCurrency(netSales)} \u2014 Balance: ${formatCurrency(receivable)}`;
+          els.encodePaymentHelper.className = "encode-payment-helper is-partial";
+        } else if (status === "PARTIAL_PAYMENT") {
+          els.encodePaymentHelper.textContent = "Enter a payment amount greater than 0 for partial payment.";
+          els.encodePaymentHelper.className = "encode-payment-helper is-muted";
+        } else {
+          els.encodePaymentHelper.textContent = "";
+          els.encodePaymentHelper.className = "encode-payment-helper";
+        }
+      }
       const items = readEncodeItems();
       const itemCount = items.length;
       const productTotal = items.reduce((sum, item) => sum + Number(item.total || 0), 0);
@@ -5763,6 +5812,13 @@
       if (els.summaryEditPaymentTerms) els.summaryEditPaymentTerms.addEventListener("change", updateSummaryEditDueDate);
       if (els.summaryEditCustomer) els.summaryEditCustomer.addEventListener("blur", syncSummaryCustomerFieldsFromName);
       if (els.summaryEditCustomer) els.summaryEditCustomer.addEventListener("change", syncSummaryCustomerFieldsFromName);
+      if (els.summaryEditPayment) els.summaryEditPayment.addEventListener("input", syncSummaryEditPaymentHelper);
+      if (els.summaryEditPayment) els.summaryEditPayment.addEventListener("change", syncSummaryEditPaymentHelper);
+      if (els.summaryEditStatus) els.summaryEditStatus.addEventListener("change", syncSummaryEditPaymentHelper);
+      if (els.summaryEditGross) els.summaryEditGross.addEventListener("input", syncSummaryEditPaymentHelper);
+      if (els.summaryEditFreight) els.summaryEditFreight.addEventListener("input", syncSummaryEditPaymentHelper);
+      if (els.summaryEditReturns) els.summaryEditReturns.addEventListener("input", syncSummaryEditPaymentHelper);
+      if (els.summaryEditEwt) els.summaryEditEwt.addEventListener("input", syncSummaryEditPaymentHelper);
       if (els.auditLogFilter) els.auditLogFilter.addEventListener("change", renderAuditLog);
       if (els.auditLogSearch) els.auditLogSearch.addEventListener("input", renderAuditLog);
       if (els.auditLogFrom) els.auditLogFrom.addEventListener("change", renderAuditLog);
