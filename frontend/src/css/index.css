@@ -1,0 +1,61 @@
+/* ========================================
+   SATC Wholesale Sales Management - CSS
+   Master import file
+   ======================================== */
+
+/* 1. Foundations */
+@import url("./tokens.css");
+@import url("./base.css");
+
+/* 2. Theme */
+@import url("./theme.css");
+
+/* 3. Component Library */
+@import url("./components.css");
+
+/* 4. Layout */
+@import url("./layout.css");
+
+/* 5. Module Styles */
+@import url("./modules/cards.css");
+@import url("./modules/filters.css");
+@import url("./modules/tables.css");
+@import url("./modules/buttons.css");
+@import url("./modules/badges.css");
+@import url("./modules/tabs.css");
+@import url("./modules/misc.css");
+
+/* 6. UX Utilities (loading, empty-state, spinner, validation) */
+@import url("./modules/loading.css");
+
+/* 7. Micro-interactions & Animation */
+@import url("./modules/animations.css");
+
+/* 8. Scrolling & Virtual Scroll */
+@import url("./modules/scroll.css");
+
+/* 9. Mobile Polish */
+@import url("./modules/mobile.css");
+
+/* 10. Accessibility & i18n */
+@import url("./modules/accessibility.css");
+
+/* 11. Feature Modules */
+@import url("./modules/login.css");
+@import url("./modules/dashboard.css");
+@import url("./modules/encode.css");
+@import url("./modules/soa.css");
+@import url("./modules/soa-deep.css");
+
+/* 12. Responsive & Print (print styles embedded in responsive.css + patches) */
+@import url("./responsive.css");
+
+/* 13. Patches (loaded last for override) */
+@import url("./patches/final-polish.css");
+@import url("./patches/phase6-qa-polish.css");
+@import url("./patches/audit-accountability.css");
+@import url("./patches/phase10-dark-ui.css");
+@import url("./patches/phase11-refinement.css");
+@import url("./patches/phase12-structure.css");
+@import url("./patches/phase13-dark-integration.css");
+@import url("./patches/enterprise-dark-polish.css");

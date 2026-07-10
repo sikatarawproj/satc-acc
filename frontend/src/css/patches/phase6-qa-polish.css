@@ -1,0 +1,284 @@
+
+    /* =========================================================
+       PHASE 6: Final QA, responsive hardening, print/export polish
+       Scope: stability and accessibility improvements only.
+       Existing IDs, business logic, localStorage, calculations, print,
+       SOA, aging, encoding, and export functions are preserved.
+       ========================================================= */
+    :root {
+      --phase6-focus: 0 0 0 4px rgba(29,111,214,.18);
+      --phase6-sticky-top: 88px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body:not(.auth-locked) .app-shell,
+    body:not(.auth-locked) .app-main,
+    body:not(.auth-locked) .content,
+    .panel,
+    .section,
+    .table-card,
+    .summary-modern-panel,
+    .soa-modern-table-card,
+    .aging-v5-table-card,
+    .encode-v3-panel {
+      min-width: 0;
+    }
+
+    body:not(.auth-locked) .content > * { min-width: 0; }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2px solid rgba(29,111,214,.82) !important;
+      outline-offset: 2px !important;
+      box-shadow: var(--phase6-focus) !important;
+    }
+
+    .table-wrap,
+    .modern-table-wrap,
+    .soa-modern-table-scroll,
+    .aging-v5-table-scroll,
+    .encode-v3-products-scroll,
+    .data-table-wrap {
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+
+    .table-wrap table,
+    .modern-table-wrap table,
+    .soa-modern-table,
+    .aging-v5-table,
+    .encode-v3-products-table {
+      width: 100%;
+    }
+
+    .amount,
+    .currency,
+    .num,
+    td[data-type="currency"] {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn[disabled],
+    button[disabled] {
+      cursor: not-allowed;
+      opacity: .58;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .modern-loading-safe {
+      pointer-events: none;
+      opacity: .68;
+    }
+
+    .sidebar-overlay.show {
+      position: fixed;
+      inset: 0;
+      background: rgba(2,8,23,.52);
+      backdrop-filter: blur(4px);
+      z-index: 1090;
+    }
+
+    .app-sidebar.open { z-index: 1100; }
+
+    .app-topbar {
+      z-index: 900;
+    }
+
+    .topbar-page-info,
+    .topbar-right,
+    .topbar-user,
+    .summary-modern-title,
+    .soa-modern-table-head,
+    .aging-v5-card-head {
+      min-width: 0;
+    }
+
+    .topbar-page-info h1,
+    .topbar-page-info p,
+    .customer-main,
+    .customer-sub,
+    .summary-modern-title h2,
+    .summary-modern-title p {
+      overflow-wrap: anywhere;
+    }
+
+    .summary-modern-actions,
+    .aging-v5-actions,
+    .soa-modern-toolbar,
+    .encode-actions,
+    .filters,
+    .toolbar-row {
+      row-gap: 10px;
+    }
+
+    .phase6-print-note {
+      display: none;
+    }
+
+    @media (max-width: 1100px) {
+      .app-topbar {
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .topbar-right {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .summary-modern-actions,
+      .aging-v5-actions,
+      .soa-modern-toolbar {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 900px) {
+      body:not(.auth-locked) .app-shell,
+      body:not(.auth-locked) .app-sidebar.collapsed + .app-shell {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+      .app-sidebar,
+      .app-sidebar.collapsed {
+        width: min(312px, 86vw) !important;
+        max-width: 86vw;
+      }
+      .app-topbar {
+        position: sticky;
+        margin: 10px 10px 0;
+      }
+      .topbar-page-info p { display: none; }
+      .topbar-right { margin-left: auto; }
+      .content { padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+    }
+
+    @media (max-width: 720px) {
+      .content { padding: 12px 10px 18px !important; }
+      .section-head,
+      .summary-modern-head,
+      .soa-modern-table-head,
+      .aging-v5-card-head,
+      .aging-v5-filter-card,
+      .encode-v3-head {
+        border-radius: 18px;
+      }
+      .topbar-user { padding: 6px 8px; }
+      .topbar-user-info,
+      .topbar-user-chevron,
+      .time-pill { display: none !important; }
+      .summary-modern-actions > *,
+      .aging-v5-actions > *,
+      .soa-modern-toolbar > *,
+      .filters > *,
+      .toolbar-row > *,
+      .encode-actions > * {
+        flex: 1 1 100%;
+        min-width: 0;
+      }
+      .btn,
+      button,
+      input,
+      select,
+      textarea {
+        max-width: 100%;
+      }
+      .summary-kpi-grid,
+      .modern-progress-grid,
+      .soa-modern-metrics,
+      .aging-v5-metrics,
+      .encode-v3-summary-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    @media (max-width: 460px) {
+      .login-card { width: min(100%, 94vw); }
+      .app-topbar { border-radius: 16px; }
+      .topbar-page-info h1 { font-size: 18px; }
+      .section-title h2,
+      .summary-modern-title h2 { font-size: 20px; }
+      .table-wrap table,
+      .modern-table-wrap table,
+      .soa-modern-table,
+      .aging-v5-table,
+      .encode-v3-products-table {
+        min-width: 720px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+
+    @media print {
+      @page { margin: 12mm; }
+      html, body {
+        background: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      body:not(.auth-locked) .app-shell,
+      body:not(.auth-locked) .app-sidebar.collapsed + .app-shell {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+      }
+      .app-sidebar,
+      .app-topbar,
+      .sidebar-overlay,
+      .no-print,
+      .summary-modern-actions,
+      .aging-v5-actions,
+      .soa-modern-toolbar,
+      .encode-actions,
+      .filters,
+      .toolbar-row {
+        display: none !important;
+      }
+      .content,
+      .panel,
+      .section,
+      .soa-sheet,
+      .aging-v5-panel,
+      .summary-modern-panel {
+        box-shadow: none !important;
+        border-color: #d9e2ec !important;
+        background: #fff !important;
+      }
+      .content { padding: 0 !important; }
+      .panel,
+      .app-card,
+      .metric-card,
+      .summary-card,
+      .soa-card,
+      .aging-v5-metric,
+      .aging-v5-table-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .table-wrap,
+      .modern-table-wrap,
+      .soa-modern-table-scroll,
+      .aging-v5-table-scroll {
+        overflow: visible !important;
+      }
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; page-break-after: auto; }
+      thead { display: table-header-group; }
+      tfoot { display: table-footer-group; }
+    }
+  

@@ -1,0 +1,36 @@
+    /* ===== LOGIN — Structural essentials only (visuals in enterprise-dark-polish.css) ===== */
+    :root {
+      --login-navy: #0b1929;
+      --login-navy-deep: #06101e;
+      --login-navy-light: #132d4a;
+      --login-gold: #c9a84c;
+      --login-gold-light: #e4cc7a;
+      --login-gold-glow: rgba(201, 168, 76, 0.35);
+      --login-accent-blue: #3b82f6;
+      --login-success: #22c55e;
+      --login-surface: #ffffff;
+      --login-surface-soft: #f8fafc;
+      --login-border: rgba(148, 163, 184, 0.2);
+      --login-text: #0f172a;
+      --login-text-muted: #64748b;
+      --login-radius: 24px;
+      --login-radius-sm: 14px;
+      --login-shadow: 0 25px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+
+    .login-screen {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+
+    body.auth-locked .login-screen {
+      display: flex;
+    }

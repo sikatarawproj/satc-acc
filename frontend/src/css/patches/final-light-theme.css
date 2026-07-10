@@ -1,0 +1,5 @@
+/* ===== FINAL THEME LAYER — Dark Enterprise =====
+   Previously forced light theme. Now serves as dark compatibility layer.
+   Main dark theme is applied in enterprise-dark-polish.css.
+   This file remains to prevent import errors and provide fallbacks.
+   ============================================================ */

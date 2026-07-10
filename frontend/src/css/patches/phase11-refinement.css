@@ -1,0 +1,59 @@
+/* ===== PHASE 11 — UI REFINEMENT PATCH (refactored for Phase 14 dark) =====
+   Structural refinements preserved. Color overrides moved to enterprise-dark-polish.css.
+   ============================================================ */
+
+:root {
+  --p11-bg: #020b1a;
+  --p11-bg-2: #031426;
+  --p11-panel: rgba(8, 31, 58, 0.85);
+  --p11-panel-2: rgba(10, 35, 65, 0.9);
+  --p11-ink: #e8edf5;
+  --p11-ink-2: #c8d4e4;
+  --p11-muted: #7f95b0;
+  --p11-line: rgba(96, 165, 250, 0.15);
+  --p11-blue: #1f7ae0;
+  --p11-blue-2: #154a8a;
+  --p11-gold: #d7a633;
+  --p11-green: #22c55e;
+  --p11-red: #ef4444;
+  --p11-orange: #f59e0b;
+  --p11-radius: 14px;
+  --p11-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+html, body {
+  background: #020b1a !important;
+  color: #e8edf5 !important;
+}
+
+body:not(.auth-locked) .app-shell,
+body:not(.auth-locked) .app-main,
+body:not(.auth-locked) .section {
+  background: transparent !important;
+}
+
+body:not(.auth-locked) .section {
+  padding: 16px 18px 24px !important;
+}
+
+.app-sidebar { width: 258px !important; }
+body:not(.auth-locked) .app-shell { margin-left: 258px !important; }
+.app-sidebar.collapsed + .app-shell { margin-left: 72px !important; }
+
+.sidebar-header { min-height: 76px !important; padding: 14px 16px !important; }
+.sidebar-logo {
+  width: 46px !important; height: 46px !important;
+  border-radius: 50% !important;
+}
+
+@media (max-width: 900px) {
+  .app-shell { margin-left: 0 !important; }
+  .app-sidebar { transform: translateX(-100%) !important; position: fixed !important; }
+  .app-sidebar.open { transform: translateX(0) !important; }
+  .section { padding: 12px !important; }
+}
+
+@media print {
+  .app-sidebar, .app-topbar, .no-print { display: none !important; }
+  .app-shell { margin-left: 0 !important; }
+}

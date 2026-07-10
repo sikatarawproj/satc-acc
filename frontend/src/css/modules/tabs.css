@@ -1,0 +1,55 @@
+    /* ===== STATUS FILTER TABS ===== */
+    .status-filter-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .status-filter-tab {
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: var(--white);
+      color: var(--slate-700);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .status-filter-tab:hover { background: var(--slate-50); }
+    .status-filter-tab.active { background: var(--navy-900); color: #fff; border-color: var(--navy-900); }
+
+
+    /* ===== TABS ===== */
+    .tab-nav {
+      display: flex;
+      gap: 2px;
+      border-bottom: 1px solid var(--border);
+      padding: 0 22px;
+      background: var(--white);
+    }
+    .tab-nav-btn {
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      border: none;
+      background: none;
+      position: relative;
+      transition: color 0.15s;
+    }
+    .tab-nav-btn:hover { color: var(--navy-900); }
+    .tab-nav-btn.active {
+      color: var(--blue-600);
+    }
+    .tab-nav-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--blue-600);
+      border-radius: 2px 2px 0 0;
+    }
+

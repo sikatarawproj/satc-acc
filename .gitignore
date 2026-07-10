@@ -10,3 +10,5 @@ dist/
 .vscode/
 .idea/
 .vercel/
+dist/
+frontend/src/js/_entry.js

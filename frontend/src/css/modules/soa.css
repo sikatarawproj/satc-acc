@@ -1,0 +1,59 @@
+    /* ===== SOA CARD ===== */
+    .soa-customer-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+    .soa-customer-info h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--navy-900);
+    }
+    .soa-customer-detail {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .soa-customer-detail svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .soa-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .soa-metric {
+      text-align: center;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: var(--slate-50);
+      border: 1px solid var(--border);
+    }
+    .soa-metric.alert {
+      background: var(--navy-900);
+      border-color: var(--navy-900);
+      grid-column: span 3;
+    }
+    .soa-metric .label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .soa-metric .value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--navy-900);
+    }
+    .soa-metric.alert .label { color: rgba(255,255,255,0.6); }
+    .soa-metric.alert .value { color: #fff; }
+    .soa-metric.red .value { color: var(--red-600); }
+

@@ -1,0 +1,408 @@
+/* ==========================================
+   Phase 9 Day 6: Micro-interactions & Animation
+   ========================================== */
+
+/* ---- Page/Section Transitions ---- */
+.section-pane {
+  animation: paneEnter 0.35s ease-out;
+}
+
+@keyframes paneEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-pane.fast {
+  animation-duration: 0.2s;
+}
+
+.section-pane-exit {
+  animation: paneExit 0.2s ease-in forwards;
+}
+
+@keyframes paneExit {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* ---- Modal Animations ---- */
+.modal-overlay,
+.summary-edit-overlay,
+.phase12-overlay,
+.import-preview-overlay,
+.admin-password-overlay,
+.admin-reset-overlay {
+  animation: overlayFadeIn 0.2s ease-out;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content,
+.tx-modal-content,
+.summary-edit-modal,
+.phase12-modal-content,
+.import-preview-content,
+.admin-password-modal,
+.admin-reset-content {
+  animation: modalScaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ---- Toast Slide-in ---- */
+.toast {
+  animation: toastSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.toast-removing {
+  animation: toastSlideOut 0.25s ease-in forwards;
+}
+
+@keyframes toastSlideOut {
+  to {
+    opacity: 0;
+    transform: translateX(80px) scale(0.95);
+  }
+}
+
+/* Toast progress bar (shows remaining dismiss time) */
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: rgba(255, 255, 255, 0.35);
+  animation: toastProgress linear forwards;
+}
+
+.toast-success .toast-progress { background: rgba(255, 255, 255, 0.4); }
+.toast-error .toast-progress { background: rgba(255, 255, 255, 0.3); }
+.toast-info .toast-progress { background: rgba(255, 255, 255, 0.35); }
+.toast-warning .toast-progress { background: rgba(0, 0, 0, 0.15); }
+
+@keyframes toastProgress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+/* ---- Counter Animation (stat value roll-up) ---- */
+.stat-value {
+  display: inline-block;
+  transition: color 0.3s ease;
+}
+
+.stat-value.animate {
+  animation: countPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes countPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* Staggered row animation */
+.stagger-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.stagger-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+}
+
+/* Table row highlight on update */
+@keyframes rowFlash {
+  0% { background-color: rgba(59, 130, 246, 0.15); }
+  100% { background-color: transparent; }
+}
+
+tr.row-updated {
+  animation: rowFlash 1.2s ease-out;
+}
+
+/* ---- Button Ripple Effect ---- */
+.btn-saas.ripple,
+.btn.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-effect {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0);
+  animation: rippleAnim 0.6s ease-out;
+  pointer-events: none;
+}
+
+.btn-secondary .ripple-effect {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+@keyframes rippleAnim {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* ---- Focus Ring Polish ---- */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+  border-color: var(--accent);
+  border-radius: var(--radius-sm);
+  transition: box-shadow 0.15s ease;
+}
+
+/* ---- Checkbox/Toggle Transition ---- */
+input[type="checkbox"] {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* ---- Dropdown Menu Animation ---- */
+.dropdown-menu,
+.more-menu,
+.admin-menu,
+.profile-menu {
+  transform-origin: top right;
+  animation: menuEnter 0.15s ease-out;
+}
+
+@keyframes menuEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ---- Skeleton shimmer refinement (smoother) ---- */
+.skeleton {
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* ---- Input focus transition ---- */
+.input-saas,
+.input-field,
+select.input-saas,
+textarea.input-saas {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+/* ---- Badge/Status pill transition ---- */
+.status-badge {
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* ---- Tooltip fade ---- */
+[data-tooltip]:hover::after {
+  animation: tooltipFadeIn 0.15s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Auto-save Indicator ---- */
+.auto-save-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 100px;
+  transition: all 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.auto-save-indicator.visible {
+  opacity: 1;
+}
+
+.auto-save-indicator.saving {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning, #d97706);
+}
+
+.auto-save-indicator.saved {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--success, #16a34a);
+}
+
+.auto-save-indicator.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger, #dc2626);
+}
+
+.auto-save-indicator .spinner-sm {
+  width: 10px;
+  height: 10px;
+  border-width: 1.5px;
+}
+
+/* ---- Undo Toast ---- */
+.undo-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 13px;
+  color: var(--text);
+  z-index: 9999;
+  animation: undoSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes undoSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.undo-toast-removing {
+  animation: undoSlideDown 0.2s ease-in forwards;
+}
+
+@keyframes undoSlideDown {
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(16px);
+  }
+}
+
+.undo-toast-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.undo-toast-btn:hover {
+  opacity: 0.9;
+}
+
+.undo-toast-dismiss {
+  padding: 4px;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.undo-toast-dismiss:hover {
+  color: var(--text);
+}
+
+/* ---- Focus Trap overlay guard ---- */
+.focus-guard {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ---- Form section auto-save bar ---- */
+.form-save-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 0 0 var(--radius) var(--radius);
+  gap: 8px;
+}
+
+.form-save-bar .auto-save-indicator {
+  font-size: 11px;
+}
+
+/* ---- Keyboard shortcut hint ---- */
+.kbd-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  color: var(--muted);
+  font-family: inherit;
+}
+
+kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 var(--border);
+}

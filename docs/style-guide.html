@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SATC Design System — Style Guide</title>
+  <link rel="stylesheet" href="../frontend/src/css/index.css" />
+  <style>
+    body { padding: 32px; max-width: 1200px; margin: 0 auto; background: var(--bg); color: var(--text); }
+    h1 { font-size: var(--fs-28); font-weight: var(--fw-700); margin-bottom: var(--space-1); }
+    .subtitle { color: var(--muted); margin-bottom: var(--space-8); }
+    .sg-section { margin-bottom: var(--space-8); }
+    .sg-section h2 { font-size: var(--fs-20); font-weight: var(--fw-600); border-bottom: 1px solid var(--border); padding-bottom: var(--space-2); margin-bottom: var(--space-4); color: var(--accent); }
+    .sg-section h3 { font-size: var(--fs-16); font-weight: var(--fw-600); margin-bottom: var(--space-3); color: var(--text-secondary); }
+    .sg-row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin-bottom: var(--space-3); }
+    .sg-col { display: flex; flex-direction: column; gap: var(--space-2); }
+    .sg-label { font-size: var(--fs-11); color: var(--muted); margin-top: var(--space-1); }
+    .sg-palette { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+    .sg-swatch { width: 80px; padding: var(--space-2); border-radius: var(--radius-sm); text-align: center; font-size: var(--fs-10); border: 1px solid var(--border); }
+    .sg-swatch span { display: block; margin-top: var(--space-1); font-family: var(--ff-mono); }
+    .sg-spacing { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1); }
+    .sg-spacing-box { background: var(--accent); opacity: 0.3; border-radius: 2px; flex-shrink: 0; }
+    .sg-value { font-size: var(--fs-11); font-family: var(--ff-mono); color: var(--text-secondary); min-width: 120px; }
+    .sg-shadow-box { width: 120px; height: 60px; border-radius: var(--radius-sm); background: var(--panel); display: flex; align-items: center; justify-content: center; font-size: var(--fs-10); color: var(--muted); }
+    .sg-typo { margin-bottom: var(--space-1); }
+    .sg-card { background: var(--panel); border-radius: var(--radius); padding: var(--space-4); border: 1px solid var(--border); }
+    table.sg-table { width: 100%; border-collapse: collapse; }
+    table.sg-table th { text-align: left; font-size: var(--fs-11); color: var(--muted); font-weight: var(--fw-600); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--border); }
+    table.sg-table td { padding: var(--space-2) var(--space-3); font-size: var(--fs-13); border-bottom: 1px solid var(--border-light); font-family: var(--ff-mono); color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+  <h1>SATC Design System</h1>
+  <p class="subtitle">Component Gallery &mdash; Phase 13</p>
+
+  <!-- Color Palette -->
+  <section class="sg-section">
+    <h2>Color Palette</h2>
+    <div class="sg-palette">
+      <div class="sg-swatch" style="background:#0f172a;color:#94a3b8;"><span>--bg</span><span>#0f172a</span></div>
+      <div class="sg-swatch" style="background:#1e293b;color:#94a3b8;"><span>--panel</span><span>#1e293b</span></div>
+      <div class="sg-swatch" style="background:#334155;color:#cbd5e1;"><span>--border</span><span>#334155</span></div>
+      <div class="sg-swatch" style="background:#3b82f6;color:#fff;"><span>--accent</span><span>#3b82f6</span></div>
+      <div class="sg-swatch" style="background:#22c55e;color:#fff;"><span>--success</span><span>#22c55e</span></div>
+      <div class="sg-swatch" style="background:#ef4444;color:#fff;"><span>--danger</span><span>#ef4444</span></div>
+      <div class="sg-swatch" style="background:#f59e0b;color:#000;"><span>--warning</span><span>#f59e0b</span></div>
+      <div class="sg-swatch" style="background:#0891b2;color:#fff;"><span>--info</span><span>#0891b2</span></div>
+      <div class="sg-swatch" style="background:#f1f5f9;color:#0f172a;"><span>--text</span><span>#f1f5f9</span></div>
+      <div class="sg-swatch" style="background:#94a3b8;color:#0f172a;"><span>--text-secondary</span><span>#94a3b8</span></div>
+      <div class="sg-swatch" style="background:#64748b;color:#fff;"><span>--muted</span><span>#64748b</span></div>
+    </div>
+  </section>
+
+  <!-- Typography -->
+  <section class="sg-section">
+    <h2>Typography</h2>
+    <div class="sg-typo" style="font-size:var(--fs-40);font-weight:var(--fw-700);">--fs-40 Headline</div>
+    <div class="sg-typo" style="font-size:var(--fs-32);font-weight:var(--fw-700);">--fs-32 Display</div>
+    <div class="sg-typo" style="font-size:var(--fs-28);font-weight:var(--fw-600);">--fs-28 Heading 1</div>
+    <div class="sg-typo" style="font-size:var(--fs-24);font-weight:var(--fw-600);">--fs-24 Heading 2</div>
+    <div class="sg-typo" style="font-size:var(--fs-20);font-weight:var(--fw-600);">--fs-20 Heading 3</div>
+    <div class="sg-typo" style="font-size:var(--fs-18);font-weight:var(--fw-600);">--fs-18 Heading 4</div>
+    <div class="sg-typo" style="font-size:var(--fs-16);font-weight:var(--fw-500);">--fs-16 Body Large</div>
+    <div class="sg-typo" style="font-size:var(--fs-14);">--fs-14 Body</div>
+    <div class="sg-typo" style="font-size:var(--fs-13);">--fs-13 Body Small</div>
+    <div class="sg-typo" style="font-size:var(--fs-12);color:var(--muted);">--fs-12 Caption</div>
+    <div class="sg-typo" style="font-size:var(--fs-11);color:var(--muted);">--fs-11 Small</div>
+    <div class="sg-typo" style="font-size:var(--fs-10);color:var(--muted);">--fs-10 Tiny</div>
+  </section>
+
+  <!-- Buttons -->
+  <section class="sg-section">
+    <h2>Buttons</h2>
+    <div class="sg-row">
+      <button class="btn-saas">Primary</button>
+      <button class="btn-saas btn-secondary">Secondary</button>
+      <button class="btn-saas btn-danger">Danger</button>
+      <button class="btn-saas btn-ghost">Ghost</button>
+      <button class="btn-saas" disabled>Disabled</button>
+      <button class="btn-saas is-loading">Loading</button>
+    </div>
+    <div class="sg-row">
+      <button class="btn-saas" style="font-size:var(--fs-12);padding:4px 12px;">Small</button>
+      <button class="btn-saas" style="padding:12px 28px;">Large</button>
+    </div>
+  </section>
+
+  <!-- Form Elements -->
+  <section class="sg-section">
+    <h2>Form Elements</h2>
+    <div class="sg-row">
+      <input class="input-saas" placeholder="Text input" />
+      <select class="input-saas"><option>Option 1</option><option>Option 2</option></select>
+      <textarea class="input-saas" placeholder="Textarea" rows="2"></textarea>
+    </div>
+    <div class="sg-row">
+      <input class="input-saas is-error" placeholder="Error state" value="bad value" />
+      <input class="input-saas is-success" placeholder="Success state" value="good value" />
+    </div>
+    <div class="sg-row">
+      <label><input type="checkbox" checked /> Checkbox</label>
+      <label><input type="radio" name="r" checked /> Radio</label>
+    </div>
+  </section>
+
+  <!-- Cards -->
+  <section class="sg-section">
+    <h2>Cards &amp; Panels</h2>
+    <div class="sg-row">
+      <div class="card-saas" style="width:240px;">
+        <div class="card-header"><h3>Card Title</h3></div>
+        <div class="card-body">Card content with some description text for display.</div>
+        <div class="card-footer"><button class="btn-saas">Action</button></div>
+      </div>
+      <div class="card-saas card-interactive" style="width:240px;">
+        <div class="card-body">Interactive card — hover me</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Badges -->
+  <section class="sg-section">
+    <h2>Badges &amp; Status Pills</h2>
+    <div class="sg-row">
+      <span class="badge badge-paid">PAID</span>
+      <span class="badge badge-pastdue">PAST DUE</span>
+      <span class="badge badge-notdue">NOT DUE</span>
+      <span class="badge badge-cancelled">CANCELLED</span>
+      <span class="badge badge-active">ACTIVE</span>
+      <span class="badge badge-inactive">INACTIVE</span>
+    </div>
+  </section>
+
+  <!-- Tabs -->
+  <section class="sg-section">
+    <h2>Tabs</h2>
+    <div class="tabs-saas">
+      <button class="tab-btn active">Active Tab</button>
+      <button class="tab-btn">Tab Two</button>
+      <button class="tab-btn">Tab Three</button>
+    </div>
+  </section>
+
+  <!-- Metric Cards -->
+  <section class="sg-section">
+    <h2>Metric Cards</h2>
+    <div class="sg-row">
+      <div class="metric-saas" style="width:200px;">
+        <div class="metric-value">&#8369;1,234,567</div>
+        <div class="metric-label">Total Sales</div>
+      </div>
+      <div class="metric-saas" style="width:200px;">
+        <div class="metric-value success">&#8369;890,123</div>
+        <div class="metric-label">Collections</div>
+      </div>
+      <div class="metric-saas" style="width:200px;">
+        <div class="metric-value danger">&#8369;345,678</div>
+        <div class="metric-label">Past Due</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Progress Bars -->
+  <section class="sg-section">
+    <h2>Progress Bars</h2>
+    <div class="sg-col" style="width:400px;">
+      <div class="progress-saas"><div class="progress-fill" style="width:65%;"></div></div>
+      <div class="progress-saas success"><div class="progress-fill" style="width:80%;"></div></div>
+      <div class="progress-saas danger"><div class="progress-fill" style="width:30%;"></div></div>
+      <div class="progress-saas warning"><div class="progress-fill" style="width:50%;"></div></div>
+    </div>
+  </section>
+
+  <!-- Loading States -->
+  <section class="sg-section">
+    <h2>Loading States</h2>
+    <div class="sg-row">
+      <div class="spinner"></div>
+      <div class="spinner spinner-lg"></div>
+      <div class="spinner spinner-sm"></div>
+      <div class="spinner spinner-white" style="background:var(--bg);padding:12px;border-radius:8px;"></div>
+    </div>
+    <div class="sg-row">
+      <div class="skeleton skeleton-text" style="width:200px;"></div>
+      <div class="skeleton skeleton-heading" style="width:150px;"></div>
+      <div class="skeleton skeleton-avatar"></div>
+    </div>
+    <div class="sg-row">
+      <div class="skeleton skeleton-card" style="width:200px;"></div>
+      <div class="skeleton skeleton-metric" style="width:200px;"></div>
+    </div>
+  </section>
+
+  <!-- Modals -->
+  <section class="sg-section">
+    <h2>Modal</h2>
+    <button class="btn-saas" onclick="document.getElementById('sgModal').classList.add('open')">Open Modal</button>
+    <div class="modal-overlay" id="sgModal" onclick="if(event.target===this)this.classList.remove('open')" style="display:none;">
+      <div class="modal-content" style="max-width:440px;">
+        <div class="modal-header"><h3>Modal Title</h3><button class="modal-close" onclick="document.getElementById('sgModal').classList.remove('open')">&times;</button></div>
+        <div class="modal-body">Modal content with description and form elements.</div>
+        <div class="modal-footer"><button class="btn-saas" onclick="document.getElementById('sgModal').classList.remove('open')">Close</button></div>
+      </div>
+    </div>
+    <style>
+      .modal-overlay.open { display:flex !important; }
+    </style>
+  </section>
+
+  <!-- Toast -->
+  <section class="sg-section">
+    <h2>Toast Notifications</h2>
+    <div class="sg-row">
+      <button class="btn-saas" onclick="showToast('Success toast example','success')">Show Success</button>
+      <button class="btn-saas btn-danger" onclick="showToast('Error toast example','error')">Show Error</button>
+      <button class="btn-saas btn-secondary" onclick="showToast('Info toast','info')">Show Info</button>
+    </div>
+  </section>
+
+  <!-- Shadow levels -->
+  <section class="sg-section">
+    <h2>Elevation / Shadows</h2>
+    <div class="sg-row">
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-sm);">--shadow-sm</div>
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-md);">--shadow-md</div>
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-lg);">--shadow-lg</div>
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-xl);">--shadow-xl</div>
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-card);">--shadow-card</div>
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-modal);">--shadow-modal</div>
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-dropdown);">--shadow-dropdown</div>
+    </div>
+  </section>
+
+  <!-- Spacing scale -->
+  <section class="sg-section">
+    <h2>Spacing Scale</h2>
+    <div class="sg-spacing"><div class="sg-spacing-box" style="width:var(--space-1);height:16px;"></div><span class="sg-value">--space-1: 4px</span></div>
+    <div class="sg-spacing"><div class="sg-spacing-box" style="width:var(--space-2);height:16px;"></div><span class="sg-value">--space-2: 8px</span></div>
+    <div class="sg-spacing"><div class="sg-spacing-box" style="width:var(--space-3);height:16px;"></div><span class="sg-value">--space-3: 12px</span></div>
+    <div class="sg-spacing"><div class="sg-spacing-box" style="width:var(--space-4);height:16px;"></div><span class="sg-value">--space-4: 16px</span></div>
+    <div class="sg-spacing"><div class="sg-spacing-box" style="width:var(--space-5);height:16px;"></div><span class="sg-value">--space-5: 20px</span></div>
+    <div class="sg-spacing"><div class="sg-spacing-box" style="width:var(--space-6);height:16px;"></div><span class="sg-value">--space-6: 24px</span></div>
+    <div class="sg-spacing"><div class="sg-spacing-box" style="width:var(--space-7);height:16px;"></div><span class="sg-value">--space-7: 32px</span></div>
+    <div class="sg-spacing"><div class="sg-spacing-box" style="width:var(--space-8);height:16px;"></div><span class="sg-value">--space-8: 40px</span></div>
+    <div class="sg-spacing"><div class="sg-spacing-box" style="width:var(--space-9);height:16px;"></div><span class="sg-value">--space-9: 48px</span></div>
+    <div class="sg-spacing"><div class="sg-spacing-box" style="width:var(--space-10);height:16px;"></div><span class="sg-value">--space-10: 64px</span></div>
+  </section>
+
+  <!-- Token reference table -->
+  <section class="sg-section">
+    <h2>Complete Token Reference</h2>
+    <table class="sg-table">
+      <thead><tr><th>Token</th><th>Value</th><th>Category</th></tr></thead>
+      <tbody id="tokenTable"></tbody>
+    </table>
+    <script>
+      var tokens = [
+        ['--bg','#0f172a','Color'],['--panel','#1e293b','Color'],['--accent','#3b82f6','Color'],
+        ['--success','#22c55e','Color'],['--danger','#ef4444','Color'],['--warning','#f59e0b','Color'],
+        ['--text','#f1f5f9','Color'],['--text-secondary','#94a3b8','Color'],['--muted','#64748b','Color'],
+        ['--border','#334155','Color'],['--border-light','#1e293b','Color'],
+        ['--fs-14','14px','Typography'],['--fs-16','16px','Typography'],['--fs-20','20px','Typography'],
+        ['--space-1','4px','Spacing'],['--space-2','8px','Spacing'],['--space-4','16px','Spacing'],
+        ['--radius','12px','Radius'],['--radius-sm','8px','Radius'],['--radius-lg','16px','Radius'],
+        ['--shadow-sm','0 1px 2px…','Shadow'],['--shadow-md','0 4px 6px…','Shadow'],['--shadow-lg','0 10px 15px…','Shadow'],
+        ['--duration-fast','0.15s','Animation'],['--duration-normal','0.2s','Animation'],['--duration-slow','0.3s','Animation'],
+        ['--z-modal','500','Z-Index'],['--z-toast','600','Z-Index'],['--z-max','9999','Z-Index'],
+      ];
+      var html = '';
+      tokens.forEach(function(t){ html += '<tr><td>'+t[0]+'</td><td>'+t[1]+'</td><td>'+t[2]+'</td></tr>'; });
+      document.getElementById('tokenTable').innerHTML = html;
+    </script>
+  </section>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+/* ===== PHASE 13 — Dark Integration (refined) =====
+   Base dark theme layer. enterprise-dark-polish.css applies final overrides.
+   ============================================================ */
+
+:root {
+  --p13-bg: #020b1a;
+  --p13-bg-2: #031426;
+  --p13-sidebar: #031426;
+  --p13-surface: rgba(8, 31, 58, 0.85);
+  --p13-surface-2: rgba(10, 35, 65, 0.9);
+  --p13-surface-3: rgb(6, 24, 46);
+  --p13-border: rgba(96, 165, 250, 0.15);
+  --p13-border-2: rgba(96, 165, 250, 0.25);
+  --p13-text: #e8edf5;
+  --p13-text-2: #c8d4e4;
+  --p13-muted: #7f95b0;
+  --p13-muted-2: #5d7696;
+  --p13-blue: #1f7ae0;
+  --p13-blue-2: #3b82f6;
+  --p13-gold: #d99420;
+  --p13-green: #22c55e;
+  --p13-orange: #f59e0b;
+  --p13-red: #ef4444;
+  --p13-purple: #8b5cf6;
+  --p13-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  --p13-soft-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+html, body { background: var(--p13-bg) !important; }
+
+body:not(.auth-locked) {
+  background: var(--p13-bg) !important;
+  color: var(--p13-text) !important;
+}
+
+body:not(.auth-locked) .app-shell,
+body:not(.auth-locked) .content,
+body:not(.auth-locked) main,
+body:not(.auth-locked) .main-content {
+  background: transparent !important;
+  color: var(--p13-text) !important;
+}
+
+body:not(.auth-locked) .content { padding: 20px 22px !important; }
