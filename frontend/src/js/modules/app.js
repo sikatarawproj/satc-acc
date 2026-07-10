@@ -2063,8 +2063,7 @@
       state.filtered = getFilteredTransactions();
       renderCustomerList();
       renderSoaCustomerOptions();
-      const txCard = document.getElementById("summaryTableCard");
-      if (txCard && txCard.style.display !== "none") renderSalesTable();
+      renderSalesTable();
       renderStats();
       renderAgingReport();
       renderAuditLog();
@@ -2627,13 +2626,13 @@
       els.customerFilter.value = names.includes(current) ? current : "all";
     }
 
+    let salesTableLoaded = false;
+
     function renderSalesTable() {
       if (!els.salesTableBody || !els.summaryRangeChip) return;
-      const card = document.getElementById("summaryTableCard");
-      if (card && card.style.display === "none") {
-        card.style.display = "";
-        const btn = document.getElementById("loadTransactionsBtn");
-        if (btn) btn.style.display = "none";
+      if (!salesTableLoaded) {
+        els.salesTableBody.innerHTML = `<tr><td colspan="17" class="empty-state">Click "Load Recent Transactions" to view.</td></tr>`;
+        return;
       }
       populateCustomerFilter();
       state.filtered = getFilteredTransactions();
@@ -5764,6 +5763,7 @@
           loadTxBtn.style.display = "none";
           const card = document.getElementById("summaryTableCard");
           if (card) card.style.display = "";
+          salesTableLoaded = true;
           renderSalesTable();
         });
       }
