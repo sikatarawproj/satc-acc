@@ -2538,7 +2538,6 @@
     function getFilteredTransactions() {
       if (!els.monthFilter || !els.statusFilter) return [];
       const searchTerm = normalize(els.dashboardSearch?.value || "");
-      if (!searchTerm || searchTerm.length < 2) return [];
       const customer = normalize(els.customerFilter?.value || "all");
       const month = els.monthFilter.value;
       const statusFilter = els.statusFilter.value;
@@ -2555,7 +2554,7 @@
       if (statusFilter !== "all") {
         rows = rows.filter((tx) => statusFilter === "CANCELLED" ? !!tx.isCancelled : tx.status === statusFilter);
       }
-      if (searchTerm) {
+      if (searchTerm && searchTerm.length >= 2) {
         rows = rows.filter((tx) => {
           const haystack = [
             tx.customer,
@@ -2609,11 +2608,8 @@
       populateCustomerFilter();
       state.filtered = getFilteredTransactions();
       els.salesTableBody.innerHTML = "";
-      const searchTerm = normalize(els.dashboardSearch?.value || "");
       if (!state.filtered.length) {
-        const msg = searchTerm.length < 2
-          ? "Type a customer name or invoice number to search transactions."
-          : "No transactions match your search.";
+        const msg = "No transactions found for the selected filters.";
         els.salesTableBody.innerHTML = `<tr><td colspan="17" class="empty-state">${msg}</td></tr>`;
       } else {
         const frag = document.createDocumentFragment();

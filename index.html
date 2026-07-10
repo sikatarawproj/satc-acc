@@ -817,12 +817,13 @@
                       </div>
                       <div class="edit-field">
                         <label for="summaryEditStatus">Status</label>
-                        <select id="summaryEditStatus">
-                          <option value="PAID">Paid</option>
-                          <option value="PASTDUE">Past Due</option>
-                          <option value="NOTDUE">Not Due</option>
-                          <option value="CANCELLED">Cancelled</option>
-                        </select>
+            <select id="summaryEditStatus">
+              <option value="PAID">Paid</option>
+              <option value="NOTDUE">Not Due</option>
+              <option value="PARTIAL_PAYMENT">Partial Payment</option>
+              <option value="PASTDUE">Past Due</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
                       </div>
                     </div>
                   </div>
@@ -895,6 +896,7 @@
               <option value="all">All Statuses</option>
               <option value="PAID">Paid</option>
               <option value="NOTDUE">Not Due</option>
+              <option value="PARTIAL_PAYMENT">Partial Payment</option>
               <option value="PASTDUE">Past Due</option>
               <option value="CANCELLED">Cancelled</option>
             </select>
