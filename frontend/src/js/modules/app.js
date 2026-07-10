@@ -137,11 +137,41 @@
       return String(str || "").trim().toLowerCase();
     }
 
+    const BISTRO_CANONICAL_NAME = "Bistro Italiano Corp.";
+    const CUSTOMER_ALIAS_NAMES = [
+      "BISTRO AMERICANO CORP",
+      "BISTRO AMERICANO CORP.",
+      "BISTRO AMERICANO EASTWOOD MALL CORP.",
+      "BISTRO ITALIANO CORP",
+      "BISTRO ITALIANO CORP.",
+      "BISTRO ITALIANO NEWPORT MALL CORP.",
+      "BISTRONOMIA CORP.",
+      "BISTRONOMIA CORPORATION",
+      "BONIFACIO BISTRO ITALIANO CORP-ITALLIANIS-HIGH STREET",
+      "BONIFACIO BISTRO ITALIANO CORP-ITALIANIS-HIGH STREET",
+    ];
+
+    function customerAliasKey(name) {
+      return normalize(name)
+        .replace(/[.,'"]/g, "")
+        .replace(/\s*-\s*/g, "-")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    const CUSTOMER_ALIAS_MAP = new Map(
+      CUSTOMER_ALIAS_NAMES.map((name) => [customerAliasKey(name), BISTRO_CANONICAL_NAME])
+    );
+
+    function canonicalCustomerName(name) {
+      const display = String(name || "").trim();
+      return CUSTOMER_ALIAS_MAP.get(customerAliasKey(display)) || display;
+    }
+
     function customerGroupKey(name) {
-      const cleaned = normalize(name).replace(/[.,'"]/g, "").replace(/\s+/g, " ").trim();
+      const cleaned = customerAliasKey(name);
       if (!cleaned) return "";
-      if (cleaned.startsWith("bistro") || cleaned.startsWith("bistronomia")) return "group:bistro";
-      return cleaned;
+      return customerAliasKey(canonicalCustomerName(name));
     }
 
     function sameCustomerGroup(a, b) {
@@ -1847,7 +1877,7 @@
         seen.set(key, {
           ...current,
           ...profile,
-          name: current.name || name,
+          name: current.name || canonicalCustomerName(name),
           address: current.address || profile.address || "",
           tin: current.tin || profile.tin || "",
           contactPerson: current.contactPerson || profile.contactPerson || "",
@@ -1866,8 +1896,8 @@
     function collectUniqueCustomerNames(transactions = state.transactions) {
       const names = new Map();
       const addName = (name) => {
-        const display = String(name || "").trim();
-        const key = normalize(display);
+        const display = canonicalCustomerName(name);
+        const key = customerGroupKey(display);
         if (!key || names.has(key)) return;
         names.set(key, display);
       };
@@ -2452,7 +2482,8 @@
       }
       els.soaCustomerSelect.innerHTML = customers.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
       if (!els.soaCustomerSelect.value || !customers.includes(els.soaCustomerSelect.value)) {
-        els.soaCustomerSelect.value = customers[0];
+        const matchedCustomer = customers.find((name) => sameCustomerGroup(name, els.soaCustomerSelect.value));
+        els.soaCustomerSelect.value = matchedCustomer || customers[0];
       }
     }
 
@@ -2518,7 +2549,8 @@
       const current = selectedValue ?? els.customerFilter.value ?? "all";
       const names = collectUniqueCustomerNames(state.transactions || []);
       els.customerFilter.innerHTML = '<option value="all">All Customers</option>' + names.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("");
-      els.customerFilter.value = names.includes(current) ? current : "all";
+      const matchedCustomer = names.find((name) => sameCustomerGroup(name, current));
+      els.customerFilter.value = names.includes(current) ? current : (matchedCustomer || "all");
     }
 
     let salesTableLoaded = false;
@@ -3081,7 +3113,9 @@
 
       const customers = getCustomers();
       const previousCustomer = select.value;
-      const selectedCustomer = customers.includes(previousCustomer) ? previousCustomer : customers[0];
+      const selectedCustomer = customers.includes(previousCustomer)
+        ? previousCustomer
+        : (customers.find((name) => sameCustomerGroup(name, previousCustomer)) || customers[0]);
       select.innerHTML = customers.map(c => `<option value="${escapeHtml(c)}"${c === selectedCustomer ? " selected" : ""}>${escapeHtml(c)}</option>`).join("");
 
       const customer = select.value;
