@@ -2559,11 +2559,11 @@
     }
 
     function getFilteredTransactions() {
-      if (!els.monthFilter || !els.statusFilter) return [];
+      if (!els.monthFilter) return [];
       const searchTerm = normalize(els.dashboardSearch?.value || "");
       const customer = normalize(els.customerFilter?.value || "all");
       const month = els.monthFilter.value;
-      const statusFilter = els.statusFilter.value;
+      const statusFilter = els.statusFilter?.value || "all";
       let rows = state.transactions.slice();
       if (customer && customer !== "all") {
         rows = rows.filter((tx) => normalize(tx.customer || "") === customer);
@@ -2803,10 +2803,10 @@
     }
 
     function getStatsTransactions() {
-      if (!els.monthFilter || !els.statusFilter) return [];
+      if (!els.monthFilter) return [];
       const customer = normalize(els.customerFilter?.value || "all");
       const month = els.monthFilter.value;
-      const statusFilter = els.statusFilter.value;
+      const statusFilter = els.statusFilter?.value || "all";
       let rows = state.transactions.slice();
       if (customer && customer !== "all") {
         rows = rows.filter((tx) => normalize(tx.customer || "") === customer);
