@@ -6025,7 +6025,9 @@
         els.agingFilterBtns.forEach((btn) => {
           btn.addEventListener("click", () => {
             state.agingFilter = btn.dataset.agingFilter || "all";
-            if (els.agingShowFilter && state.agingFilter === "cancelled") els.agingShowFilter.value = "cancelled";
+            if (els.agingShowFilter) {
+              els.agingShowFilter.value = state.agingFilter === "cancelled" ? "cancelled" : "all";
+            }
             renderAgingReport();
           });
         });
