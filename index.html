@@ -902,9 +902,10 @@
               <option value="CANCELLED">Cancelled</option>
             </select>
             <button class="btn btn-secondary" id="dashboardClearFiltersBtn" type="button">Clear Filters</button>
+            <button class="btn btn-secondary" id="loadTransactionsBtn" type="button">Load Recent Transactions</button>
           </div>
 
-          <div class="summary-table-card">
+          <div class="summary-table-card" id="summaryTableCard" style="display:none">
             <div class="summary-table-meta">
               <div class="summary-table-title">Recent Transactions <span class="summary-count-chip" id="summaryRangeChip">Showing all records</span></div>
               <div class="notice">Click any header to sort. Click a customer name to open the SOA.</div>

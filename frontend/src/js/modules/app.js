@@ -1061,7 +1061,6 @@
       renderCustomerList();
       renderSoaCustomerOptions();
       renderAuditLog();
-      renderSalesTable();
       renderStats();
       renderAgingReport();
       if (els.soaCustomerSelect?.value) {
@@ -2064,7 +2063,8 @@
       state.filtered = getFilteredTransactions();
       renderCustomerList();
       renderSoaCustomerOptions();
-      renderSalesTable();
+      const txCard = document.getElementById("summaryTableCard");
+      if (txCard && txCard.style.display !== "none") renderSalesTable();
       renderStats();
       renderAgingReport();
       renderAuditLog();
@@ -2629,6 +2629,12 @@
 
     function renderSalesTable() {
       if (!els.salesTableBody || !els.summaryRangeChip) return;
+      const card = document.getElementById("summaryTableCard");
+      if (card && card.style.display === "none") {
+        card.style.display = "";
+        const btn = document.getElementById("loadTransactionsBtn");
+        if (btn) btn.style.display = "none";
+      }
       populateCustomerFilter();
       state.filtered = getFilteredTransactions();
       els.salesTableBody.innerHTML = "";
@@ -5752,6 +5758,15 @@
         if (els.statusFilter) els.statusFilter.value = "all";
         refreshSummaryDashboard();
       });
+      const loadTxBtn = document.getElementById("loadTransactionsBtn");
+      if (loadTxBtn) {
+        loadTxBtn.addEventListener("click", () => {
+          loadTxBtn.style.display = "none";
+          const card = document.getElementById("summaryTableCard");
+          if (card) card.style.display = "";
+          renderSalesTable();
+        });
+      }
       if (els.exportSalesCsvBtn) els.exportSalesCsvBtn.addEventListener("click", exportVisibleSalesCsv);
       if (els.exportSalesXlsxBtn) els.exportSalesXlsxBtn.addEventListener("click", exportVisibleSalesXlsx);
       if (els.themeToggleBtn) els.themeToggleBtn.addEventListener("click", () => {
@@ -6395,7 +6410,6 @@
       if (els.soaAsOfDate && !els.soaAsOfDate.value) els.soaAsOfDate.value = todayISO();
       setSoaActiveTab(state.soaActiveTab || "transactions");
       clearEncodeForm();
-      renderSalesTable();
       renderStats();
       renderAgingReport();
       if (els.soaCustomerSelect.value) {
