@@ -360,12 +360,6 @@
         </div>
       </div>
       <div class="topbar-right">
-        <button class="topbar-pill" id="themeToggle" type="button" aria-label="Toggle dark mode" style="cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:6px 12px;border-radius:var(--radius-pill);font-size:12px;font-weight:600;color:var(--text-secondary);transition:var(--transition);">
-          <span id="themeIcon">☀️</span> Light
-        </button>
-        <div class="topbar-pill status-online" id="topbarLanStatus">
-          <span class="pill-dot"></span> Office LAN
-        </div>
         <div class="topbar-pill time-pill" id="topbarTime">--:--:-- --</div>
         <div class="topbar-user" id="topbarUserBtn" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-controls="topbarProfileMenu">
           <div class="topbar-user-avatar" id="topbarUserAvatar">AU</div>
@@ -481,7 +475,6 @@
               <div class="menu-dropdown" id="moreMenu" role="menu" aria-hidden="true">
                 <button type="button" class="menu-item" id="downloadBackupBtn" role="menuitem">Backup JSON</button>
                 <button type="button" class="menu-item" id="restoreBackupBtn" role="menuitem">Import JSON</button>
-                <button type="button" class="menu-item" id="themeToggleBtn" role="menuitem">Dark Mode</button>
                 <div class="menu-divider"></div>
                 <button type="button" class="menu-item danger" id="logoutBtn" role="menuitem">Logout</button>
               </div>
@@ -635,6 +628,14 @@
             </div>
           </div>
 
+          <div class="db-status-breakdown" id="statusBreakdown">
+            <div class="db-status-chip" data-status="PAID"><span class="db-status-dot paid"></span>Paid <span class="db-status-count" id="statusCountPaid">0</span></div>
+            <div class="db-status-chip" data-status="NOTDUE"><span class="db-status-dot notdue"></span>Not Due <span class="db-status-count" id="statusCountNotDue">0</span></div>
+            <div class="db-status-chip" data-status="PARTIAL_PAYMENT"><span class="db-status-dot partial"></span>Partial <span class="db-status-count" id="statusCountPartial">0</span></div>
+            <div class="db-status-chip" data-status="PASTDUE"><span class="db-status-dot pastdue"></span>Past Due <span class="db-status-count" id="statusCountPastDue">0</span></div>
+            <div class="db-status-chip" data-status="CANCELLED"><span class="db-status-dot cancelled"></span>Cancelled <span class="db-status-count" id="statusCountCancelled">0</span></div>
+          </div>
+
           <div class="db-legacy-kpi-hidden">
             <div class="summary-metric-card">
               <div class="summary-metric-top"><div><div class="summary-metric-label">Total Gross Sales</div><div class="summary-metric-value" id="grossStat">&#8369;0.00</div></div></div>
@@ -705,6 +706,18 @@
                 </div>
               </div>
             </div>
+          </div>
+
+          <div class="db-activity-widget" id="recentActivity">
+            <div class="db-chart-card-header">
+              <div>
+                <div class="db-chart-card-title">Recent Activity</div>
+                <div class="db-chart-card-sub">Last 5 audit log entries</div>
+              </div>
+            </div>
+            <div id="recentActivityList"><p class="db-activity-empty">No recent activity</p></div>
+          </div>
+
           <div class="edit-panel edit-modal-overlay" id="summaryEditPanel" aria-hidden="true">
             <div class="edit-modal" id="summaryEditModal">
             <div class="edit-panel-head">

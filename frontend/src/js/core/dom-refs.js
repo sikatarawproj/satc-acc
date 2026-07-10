@@ -61,7 +61,6 @@
       summaryLastPageBtn: document.getElementById("summaryLastPageBtn"),
       exportSalesCsvBtn: document.getElementById("exportSalesCsvBtn"),
       exportSalesXlsxBtn: document.getElementById("exportSalesXlsxBtn"),
-      themeToggleBtn: document.getElementById("themeToggleBtn"),
       salesTableBody: document.getElementById("salesTableBody"),
       summaryEditPanel: document.getElementById("summaryEditPanel"),
       summaryEditModal: document.getElementById("summaryEditModal"),

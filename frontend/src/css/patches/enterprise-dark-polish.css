@@ -3309,3 +3309,102 @@ body:not(.auth-locked) canvas#salesTrendChart {
   background: transparent !important;
   border-radius: 8px !important;
 }
+
+/* ===== STATUS BREAKDOWN CHIPS ===== */
+.db-status-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.db-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--p14-panel);
+  border: 1px solid var(--p14-line);
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--p14-muted);
+  letter-spacing: 0.2px;
+  box-shadow: var(--p14-shadow);
+}
+
+.db-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.db-status-dot.paid    { background: var(--p14-green); }
+.db-status-dot.notdue  { background: var(--p14-blue-3); }
+.db-status-dot.partial { background: var(--p14-gold); }
+.db-status-dot.pastdue { background: var(--p14-orange); }
+.db-status-dot.cancelled { background: var(--p14-red); }
+
+.db-status-count {
+  margin-left: 2px;
+  font-weight: 800;
+  color: var(--p14-ink);
+}
+
+/* ===== RECENT ACTIVITY WIDGET ===== */
+.db-activity-widget {
+  background: var(--p14-panel);
+  border: 1px solid var(--p14-line);
+  border-radius: var(--p14-radius-lg);
+  box-shadow: var(--p14-shadow-card);
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+.db-activity-widget .db-chart-card-header {
+  margin-bottom: 14px;
+}
+
+#recentActivityList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.db-activity-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--p14-bg);
+  border: 1px solid var(--p14-line);
+  border-radius: var(--p14-radius-sm);
+  line-height: 1.4;
+}
+
+.db-activity-action {
+  font-size: 13px;
+  color: var(--p14-ink);
+  min-width: 0;
+  flex: 1;
+}
+
+.db-activity-action strong {
+  font-weight: 700;
+}
+
+.db-activity-time {
+  font-size: 11px;
+  color: var(--p14-muted-2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.db-activity-empty {
+  padding: 20px 14px;
+  text-align: center;
+  color: var(--p14-muted);
+  font-size: 13px;
+}

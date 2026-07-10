@@ -197,12 +197,12 @@
       };
     }
 
-    const APP_API_BASE = "/api";
+    const APP_API_BASE = "";
 
     function resolveApiEndpoint(path) {
-      const relativePath = path.startsWith("/") ? path.replace(/^\/+/, "") : path;
-      if (!APP_API_BASE) {
-        return new URL(relativePath, window.location.href).toString();
+      if (typeof APP_API_BASE !== "string" || APP_API_BASE === "") {
+        const abs = path.startsWith("/") ? path : `/${path}`;
+        return abs;
       }
       const base = APP_API_BASE.replace(/\/+$/, "");
       const suffix = path.startsWith("/") ? path : `/${path}`;
@@ -1076,16 +1076,6 @@
       state.theme = theme === "dark" ? "dark" : "light";
       document.body.dataset.theme = state.theme;
       document.documentElement.style.colorScheme = state.theme;
-      const themeToggleBtn = document.getElementById("themeToggleBtn");
-      const topbarToggle = document.getElementById("themeToggle");
-      if (state.theme === "dark") {
-        if (themeToggleBtn) themeToggleBtn.textContent = "Light Mode";
-        if (topbarToggle) topbarToggle.innerHTML = '<span id="themeIcon">☀️</span> Light';
-      } else {
-        if (themeToggleBtn) themeToggleBtn.textContent = "Dark Mode";
-        if (topbarToggle) topbarToggle.innerHTML = '<span id="themeIcon">🌙</span> Dark';
-      }
-      if (themeToggleBtn) themeToggleBtn.setAttribute("aria-pressed", state.theme === "dark" ? "true" : "false");
       saveTheme();
     }
 
@@ -1849,6 +1839,7 @@
       } catch {
         state.auditLog = [];
       }
+      renderRecentActivity();
     }
 
     function deriveCustomerProfile(tx) {
@@ -2968,6 +2959,9 @@
       renderSparkline("sparklineTicket", buildMonthlyAverageTicketSeries(activeTxs), "#155bb5");
       renderSalesTrendChart(activeTxs);
       renderSalesBarChart(activeTxs);
+      renderStatusBreakdown(txs);
+      updateSvgRings(activeTxs, totals);
+      renderRecentActivity();
     }
 
     function showTooltip(x, y, label, value) {
@@ -3089,6 +3083,73 @@
         if (!found) hideTooltip();
       };
       canvas.onmouseleave = () => hideTooltip();
+    }
+
+    function renderStatusBreakdown(allTxs) {
+      const els = {
+        paid: document.getElementById("statusCountPaid"),
+        notDue: document.getElementById("statusCountNotDue"),
+        partial: document.getElementById("statusCountPartial"),
+        pastDue: document.getElementById("statusCountPastDue"),
+        cancelled: document.getElementById("statusCountCancelled"),
+      };
+      if (!els.paid) return;
+      const counts = { PAID: 0, NOTDUE: 0, PARTIAL_PAYMENT: 0, PASTDUE: 0, CANCELLED: 0 };
+      (allTxs || []).forEach((tx) => {
+        const s = (tx.status || "NOTDUE").toUpperCase();
+        if (s in counts) counts[s]++;
+      });
+      els.paid.textContent = counts.PAID;
+      els.notDue.textContent = counts.NOTDUE;
+      els.partial.textContent = counts.PARTIAL_PAYMENT;
+      els.pastDue.textContent = counts.PASTDUE;
+      els.cancelled.textContent = counts.CANCELLED;
+    }
+
+    function updateSvgRings(txs, totals = {}) {
+      const rings = document.querySelectorAll(".db-ring-fill");
+      if (!rings.length) return;
+      const activeTxs = Array.isArray(txs) ? txs.filter((tx) => !tx.isCancelled) : [];
+      const netSales = Number(totals.netSales || activeTxs.reduce((sum, tx) => sum + Number(tx.netSales || 0), 0));
+      const outstanding = Number(totals.outstanding || activeTxs.reduce((sum, tx) => sum + Math.max(Number(tx.receivable || 0), 0), 0));
+      const pastDue = Number(totals.pastDue || activeTxs.reduce((sum, tx) => sum + (tx.status === "PASTDUE" ? Math.max(Number(tx.receivable || 0), 0) : 0), 0));
+      const gross = Number(totals.gross || activeTxs.reduce((sum, tx) => sum + Number(tx.gross || 0), 0));
+      const paid = activeTxs.reduce((sum, tx) => sum + (tx.status === "PAID" ? Math.max(Number(tx.netSales || 0), 0) : Math.max(Number(tx.payment || 0), 0)), 0);
+      const collectionRate = netSales > 0 ? (paid / netSales) : 0;
+      const overdueShare = outstanding > 0 ? (pastDue / outstanding) : 0;
+      const arPct = netSales > 0 ? (outstanding / netSales) : 0.5;
+      const salesPct = gross > 0 ? 1 : 0;
+      const pcts = [
+        Math.min(salesPct, 1),
+        Math.min(arPct, 1),
+        Math.min(overdueShare, 1),
+        Math.min(collectionRate, 1),
+      ];
+      const circ = 2 * Math.PI * 17;
+      rings.forEach((ring, idx) => {
+        const pct = pcts[idx] || 0;
+        ring.setAttribute("stroke-dashoffset", String(circ * (1 - pct)));
+      });
+    }
+
+    function renderRecentActivity() {
+      const list = document.getElementById("recentActivityList");
+      if (!list) return;
+      const log = (state.auditLog || []).slice(0, 5);
+      if (!log.length) {
+        list.innerHTML = '<p class="db-activity-empty">No recent activity</p>';
+        return;
+      }
+      list.innerHTML = log.map((entry) => {
+        const action = escapeHtml(entry.action || "Action");
+        const detail = escapeHtml((entry.detail || "").substring(0, 80));
+        const actor = escapeHtml(entry.actor || "System");
+        const time = formatDateTime(entry.at || entry.timestamp || "");
+        return `<div class="db-activity-item">
+          <div class="db-activity-action"><strong>${actor}</strong> ${action}${detail ? " — " + detail : ""}</div>
+          <span class="db-activity-time">${escapeHtml(time)}</span>
+        </div>`;
+      }).join("");
     }
 
     function renderSalesBarChart(txs) {
@@ -5769,15 +5830,6 @@
       }
       if (els.exportSalesCsvBtn) els.exportSalesCsvBtn.addEventListener("click", exportVisibleSalesCsv);
       if (els.exportSalesXlsxBtn) els.exportSalesXlsxBtn.addEventListener("click", exportVisibleSalesXlsx);
-      if (els.themeToggleBtn) els.themeToggleBtn.addEventListener("click", () => {
-        applyTheme(state.theme === "dark" ? "light" : "dark");
-      });
-      const themeToggleBtn = document.getElementById("themeToggle");
-      if (themeToggleBtn) {
-        themeToggleBtn.addEventListener("click", () => {
-          applyTheme(state.theme === "dark" ? "light" : "dark");
-        });
-      }
       if (els.logoutBtn) els.logoutBtn.addEventListener("click", () => {
         if (!confirm("Sign out of the office system?")) return;
         signOutCurrentUser("logout");
