@@ -1,16 +1,8 @@
     function setAccountTab(tabName) {
-      const normalized = ["create", "list"].includes(tabName) ? tabName : "create";
-      state.accountTab = normalized;
-      if (els.accountTabBtns) {
-        els.accountTabBtns.forEach((btn) => {
-          const active = btn.dataset.accountTab === normalized;
-          btn.classList.toggle("active", active);
-          btn.setAttribute("aria-pressed", active ? "true" : "false");
-        });
-      }
+      state.accountTab = "list";
       if (els.accountTabPanes) {
         els.accountTabPanes.forEach((pane) => {
-          pane.classList.toggle("active", pane.dataset.accountPane === normalized);
+          pane.classList.toggle("active", pane.dataset.accountPane === "list");
         });
       }
     }
@@ -39,9 +31,9 @@
       button.setAttribute("aria-expanded", "true");
     }
 
-    function openAccountManagement(tabName = "create") {
+    function openAccountManagement() {
       setActiveTab("accountSection");
-      setAccountTab(tabName);
+      setAccountTab("list");
     }
 
     function handleAdminMenuAction(action) {
@@ -50,25 +42,13 @@
       const perms = getRolePermissions();
       switch (action) {
         case "accountSection":
+        case "createAccount":
+        case "accountList":
           if (!perms.canAdminReset) {
             showPermissionDenied("open Account Management");
             return;
           }
-          openAccountManagement("create");
-          break;
-        case "createAccount":
-          if (!perms.canAdminReset) {
-            showPermissionDenied("create accounts");
-            return;
-          }
-          openAccountManagement("create");
-          break;
-        case "accountList":
-          if (!perms.canAdminReset) {
-            showPermissionDenied("open Account List");
-            return;
-          }
-          openAccountManagement("list");
+          openAccountManagement();
           break;
         case "forgotPassword":
           toast("Forgot Password is handled from the login screen.", "info");
@@ -414,6 +394,8 @@
         normalizeAuthUser({ username: "encoder", fullName: "Office Encoder", role: "Encoder", password: "Encoder@123", status: "Active", department: "Accounting" }),
         normalizeAuthUser({ username: "reviewer", fullName: "Office Reviewer", role: "Reviewer", password: "Reviewer@123", status: "Active", department: "Accounting" }),
         normalizeAuthUser({ username: "viewer", fullName: "Office Viewer", role: "Viewer", password: "Viewer@123", status: "Active", department: "Accounting" }),
+        normalizeAuthUser({ username: "Satc-Leri", fullName: "Leri", role: "Admin", password: "Satc2005", status: "Active", department: "Accounting" }),
+        normalizeAuthUser({ username: "Satc-Mlot", fullName: "Mlot", role: "Admin", password: "Satc2005", status: "Active", department: "Accounting" }),
       ].filter(Boolean);
     }
 
@@ -676,121 +658,6 @@
         </tr>`;
       }).join("");
       renderSelectedAccountDetails();
-    }
-
-    function clearCreateAccountForm() {
-      if (els.createAccountForm) els.createAccountForm.reset();
-      if (els.createDepartment) els.createDepartment.value = "Accounting";
-      if (els.createRole) els.createRole.value = "Viewer";
-      if (els.createStatus) els.createStatus.value = "Active";
-      if (els.createForceChange) els.createForceChange.checked = true;
-      if (els.createTempPassword) els.createTempPassword.value = "";
-      const avatarImg = document.getElementById("createAvatarImg");
-      const avatarInitials = document.getElementById("createAvatarInitials");
-      const profileImageInput = document.getElementById("createProfileImage");
-      if (avatarImg) { avatarImg.src = ""; avatarImg.style.display = "none"; }
-      if (avatarInitials) { avatarInitials.textContent = "AU"; avatarInitials.style.display = ""; }
-      if (profileImageInput) profileImageInput.value = "";
-    }
-
-    function generateTemporaryPassword() {
-      const syllables = ["sun", "bay", "row", "mint", "arc", "nova", "zen", "blue"];
-      const pick = () => syllables[Math.floor(Math.random() * syllables.length)];
-      const digits = Math.floor(1000 + Math.random() * 9000);
-      return `${pick()}-${pick()}-${digits}`;
-    }
-
-    function buildAccountDraftFromCreateForm() {
-      const password = String(els.createPassword?.value || "").trim();
-      const confirmPassword = String(els.createConfirmPassword?.value || "").trim();
-      const tempPassword = String(els.createTempPassword?.value || "").trim();
-      const chosenPassword = password || tempPassword || generateTemporaryPassword();
-      const avatarImg = document.getElementById("createAvatarImg");
-      const profileImage = (avatarImg && avatarImg.src && avatarImg.style.display !== "none") ? avatarImg.src : "";
-      return {
-        username: String(els.createUsername?.value || "").trim(),
-        fullName: String(els.createFullName?.value || "").trim(),
-        email: String(els.createEmail?.value || "").trim(),
-        department: String(els.createDepartment?.value || "Accounting").trim() || "Accounting",
-        role: String(els.createRole?.value || "Viewer"),
-        status: String(els.createStatus?.value || "Active"),
-        password: chosenPassword,
-        confirmPassword,
-        tempPassword: tempPassword || chosenPassword,
-        forcePasswordChange: !!els.createForceChange?.checked,
-        notes: String(els.createNotes?.value || "").trim(),
-        profileImage,
-      };
-    }
-
-    function validateNewAccount(draft) {
-      if (!draft.fullName) return "Full name is required.";
-      if (!draft.username) return "Username is required.";
-      if (!draft.password) return "Password or temporary password is required.";
-      if (draft.confirmPassword && draft.password !== draft.confirmPassword) return "Passwords do not match.";
-      const exists = state.authUsers.some((user) => normalize(user.username) === normalize(draft.username));
-      if (exists) return "Username already exists.";
-      return "";
-    }
-
-    async function createAccount() {
-      if (!getRolePermissions().canAdminReset) {
-        showPermissionDenied("create user accounts");
-        return;
-      }
-      const draft = buildAccountDraftFromCreateForm();
-      const error = validateNewAccount(draft);
-      if (error) {
-        toast(error, "warning");
-        return;
-      }
-      const now = new Date().toISOString();
-      const record = normalizeAuthUser({
-        username: draft.username,
-        password: draft.password,
-        fullName: draft.fullName,
-        role: draft.role,
-        access: makePermissionProfileFromRole(draft.role),
-        department: draft.department,
-        email: draft.email,
-        status: draft.status,
-        notes: draft.notes,
-        forcePasswordChange: draft.forcePasswordChange,
-        createdAt: now,
-        createdBy: state.currentUser?.fullName || state.currentUser?.username || "System",
-        updatedAt: now,
-        updatedBy: state.currentUser?.fullName || state.currentUser?.username || "System",
-        lastLogin: "",
-        source: "local",
-      });
-      if (!record) {
-        toast("Could not create account.", "error");
-        return;
-      }
-      try {
-        await apiJson("/api/accounts", {
-          method: "POST",
-          body: JSON.stringify(buildAccountPayload(record, { password: draft.password })),
-        });
-        await loadAuthUsers();
-      } catch (err) {
-        console.warn("Could not sync account creation to backend", err);
-        state.authUsers.push(record);
-        saveAuthUsers();
-      }
-      renderAccountList();
-      clearCreateAccountForm();
-      toast("Account created successfully", "success", `${record.fullName} • ${record.username}`);
-      pushAuditLog({
-        action: "Account Created",
-        invNo: "",
-        customer: record.fullName,
-        actor: state.currentUser?.fullName || state.currentUser?.username || "System",
-        detail: `Created user ${record.username} (${record.role})`,
-        before: {},
-        after: record,
-        fields: ["fullName", "username", "email", "department", "role", "status", "notes", "forcePasswordChange"],
-      });
     }
 
     async function loadTransactions() {
@@ -1216,7 +1083,7 @@
             ? perms.canResetOtherPasswords
             : action === "adminReset"
               ? perms.canAdminReset
-              : action === "accountSection" || action === "createAccount" || action === "accountList"
+              : action === "accountSection" || action === "accountList"
                 ? perms.canAdminReset
                 : action === "forgotPassword"
                   ? false
@@ -6144,15 +6011,10 @@
           btn.addEventListener("click", () => setEncodeView(btn.dataset.encodeView || "transaction"));
         });
       }
-      if (els.accountTabBtns) {
-        els.accountTabBtns.forEach((btn) => {
-          btn.addEventListener("click", () => setAccountTab(btn.dataset.accountTab || "create"));
-        });
-      }
       if (els.refreshAccountsBtn) {
         els.refreshAccountsBtn.addEventListener("click", () => {
           renderAccountList();
-          setAccountTab(state.accountTab || "create");
+          setAccountTab("list");
           toast("Account list refreshed", "info");
         });
       }
@@ -6170,53 +6032,7 @@
       if (els.resetAccountAccessBtn) {
         els.resetAccountAccessBtn.addEventListener("click", resetSelectedAccountAccessToRole);
       }
-      if (els.createAccountForm) {
-        els.createAccountForm.addEventListener("submit", (e) => {
-          e.preventDefault();
-          createAccount();
-        });
-      }
-      if (els.generateTempPasswordBtn) {
-        els.generateTempPasswordBtn.addEventListener("click", () => {
-          if (els.createTempPassword) els.createTempPassword.value = generateTemporaryPassword();
-          if (!els.createPassword?.value) {
-            els.createPassword.value = els.createTempPassword.value;
-          }
-          if (els.createConfirmPassword && !els.createConfirmPassword.value) {
-            els.createConfirmPassword.value = els.createTempPassword.value;
-          }
-          toast("Temporary password generated", "info");
-        });
-      }
-      if (els.clearCreateAccountBtn) {
-        els.clearCreateAccountBtn.addEventListener("click", clearCreateAccountForm);
-      }
-      const profileImageInput = document.getElementById("createProfileImage");
-      const avatarPreview = document.getElementById("createAvatarPreview");
-      const avatarImg = document.getElementById("createAvatarImg");
-      const avatarInitials = document.getElementById("createAvatarInitials");
-      if (avatarPreview && profileImageInput) {
-        avatarPreview.addEventListener("click", () => profileImageInput.click());
-        profileImageInput.addEventListener("change", (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            if (avatarImg) { avatarImg.src = ev.target.result; avatarImg.style.display = "block"; }
-            if (avatarInitials) avatarInitials.style.display = "none";
-          };
-          reader.readAsDataURL(file);
-        });
-      }
-      const createFullNameInput = document.getElementById("createFullName");
-      if (createFullNameInput && avatarInitials) {
-        createFullNameInput.addEventListener("input", () => {
-          const name = createFullNameInput.value.trim();
-          const parts = name.split(/\s+/);
-          const initials = parts.length >= 2 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : (parts[0] || "AU").slice(0, 2).toUpperCase();
-          avatarInitials.textContent = initials;
-        });
-      }
+
 
       els.tabBtns.forEach((btn) => {
         btn.addEventListener("click", () => setActiveTab(btn.dataset.tab));
