@@ -2704,7 +2704,13 @@
                   ? "status-pastdue"
                   : "status-notdue";
           badge.className = `status ${statusClass}`;
-          badge.textContent = tx.status === "PARTIAL_PAYMENT" ? "PARTIAL PAYMENT" : tx.status;
+          if (tx.status === "PAID") {
+            badge.textContent = `Paid \u2022 ${formatCurrency(tx.payment)}`;
+          } else if (tx.status === "PARTIAL_PAYMENT") {
+            badge.textContent = `${formatCurrency(tx.payment)} out of ${formatCurrency(tx.netSales)}`;
+          } else {
+            badge.textContent = tx.status === "NOTDUE" ? "NOT DUE" : tx.status;
+          }
           if (tx.isCancelled && tx.cancellationReason) badge.title = tx.cancellationReason;
           statusCell.appendChild(badge);
           const actionsCell = tr.querySelector('[data-key="actions"]');
