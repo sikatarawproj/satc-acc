@@ -5358,6 +5358,9 @@
           targetSection.scrollIntoView({ behavior: "smooth", block: "start" });
         });
       }
+      if (location.hash !== "#" + tabId) {
+        history.pushState(null, "", "#" + tabId);
+      }
     }
 
     function toast(message, type = "info", subtitle = "") {
@@ -6070,6 +6073,13 @@
         btn.addEventListener("click", () => setActiveTab(btn.dataset.tab));
       });
 
+      window.addEventListener("hashchange", () => {
+        const tabId = location.hash.replace("#", "");
+        if (tabId && document.getElementById(tabId)) {
+          setActiveTab(tabId);
+        }
+      });
+
       const sortHeaders = document.querySelectorAll("#salesTable thead th[data-sort]");
       sortHeaders.forEach((th) => {
         th.addEventListener("click", () => {
@@ -6236,6 +6246,10 @@
         }
       }
       wireEvents();
+      const hashTab = location.hash.replace("#", "");
+      if (hashTab && document.getElementById(hashTab)) {
+        setActiveTab(hashTab);
+      }
       document.addEventListener("click", (e) => {
         const deleteBtn = e.target.closest(".account-delete-btn");
         if (deleteBtn) {
