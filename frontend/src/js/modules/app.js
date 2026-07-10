@@ -1261,12 +1261,20 @@
     }
 
     function readAuthSession() {
+      const SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
       const sources = [sessionStorage.getItem(AUTH_KEY), localStorage.getItem(AUTH_KEY)];
       for (const raw of sources) {
         if (!raw) continue;
         try {
           const parsed = JSON.parse(raw);
           if (parsed && parsed.username && parsed.fullName && parsed.role) {
+            if (parsed.loggedInAt) {
+              const age = Date.now() - new Date(parsed.loggedInAt).getTime();
+              if (age > SESSION_MAX_AGE_MS) {
+                clearAuthSession();
+                return null;
+              }
+            }
             return parsed;
           }
         } catch (err) {

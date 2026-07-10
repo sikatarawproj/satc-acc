@@ -16,8 +16,39 @@ const loginAttempts = new Map();
 const lockedAccounts = new Map();
 
 // ============ SECURITY FUNCTIONS ============
-function hashPassword(password) {
-  return crypto.createHash('sha256').update(password).digest('hex');
+const PBKDF2_ITERATIONS = 100000;
+const PBKDF2_KEYLEN = 64;
+const PBKDF2_DIGEST = 'sha512';
+const SALT_BYTES = 16;
+
+function generateSalt() {
+  return crypto.randomBytes(SALT_BYTES).toString('hex');
+}
+
+function hashPassword(password, salt) {
+  if (!salt) {
+    // Legacy SHA-256 — for backward compatibility with seed data
+    return 'sha256$' + crypto.createHash('sha256').update(password).digest('hex');
+  }
+  const hash = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, PBKDF2_KEYLEN, PBKDF2_DIGEST).toString('hex');
+  return `pbkdf2-sha512$${PBKDF2_ITERATIONS}$${salt}$${hash}`;
+}
+
+function verifyPassword(password, storedHash) {
+  if (!storedHash || !password) return false;
+  if (storedHash.startsWith('pbkdf2-sha512$')) {
+    const parts = storedHash.split('$');
+    if (parts.length !== 4) return false;
+    const [, , salt, hash] = parts;
+    const computed = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, PBKDF2_KEYLEN, PBKDF2_DIGEST).toString('hex');
+    return constantTimeCompare(computed, hash);
+  }
+  if (storedHash.startsWith('sha256$')) {
+    const hash = storedHash.slice(7);
+    const computed = crypto.createHash('sha256').update(password).digest('hex');
+    return constantTimeCompare(computed, hash);
+  }
+  return false;
 }
 
 function constantTimeCompare(a, b) {
@@ -172,7 +203,7 @@ module.exports = async (req, res) => {
       }
       const users = await supabaseQuery(`accounts?username=eq.${encodeURIComponent(cleanUsername)}&select=*`);
       const user = users[0];
-      if (!user || !constantTimeCompare(user.password_hash || '', hashPassword(password))) {
+      if (!user || !verifyPassword(password, user.password_hash || '')) {
         logRequest(req, 401);
         return json(res, { error: 'Authentication failed' }, 401);
       }
@@ -218,7 +249,7 @@ module.exports = async (req, res) => {
         logRequest(req, 400);
         return json(res, { error: 'Username, password, and full name required' }, 400);
       }
-      const data = await supabaseQuery('accounts', 'POST', { username: sanitizeInput(b.username), full_name: sanitizeInput(b.fullName), role: b.role || 'Viewer', password_hash: hashPassword(b.password), access_json: b.access || {}, department: b.department || 'Accounting', email: sanitizeInput(b.email || ''), status: b.status || 'Active', notes: sanitizeInput(b.notes || ''), force_password_change: b.forcePasswordChange ?? true, profile_image: b.profileImage || '' });
+      const data = await supabaseQuery('accounts', 'POST', { username: sanitizeInput(b.username), full_name: sanitizeInput(b.fullName), role: b.role || 'Viewer', password_hash: hashPassword(b.password, generateSalt()), access_json: b.access || {}, department: b.department || 'Accounting', email: sanitizeInput(b.email || ''), status: b.status || 'Active', notes: sanitizeInput(b.notes || ''), force_password_change: b.forcePasswordChange ?? true, profile_image: b.profileImage || '' });
       logRequest(req, 201);
       return json(res, { id: data[0] && data[0].id, username: data[0] && data[0].username }, 201);
     }
@@ -280,7 +311,7 @@ module.exports = async (req, res) => {
       if (b.email !== undefined) update.email = sanitizeInput(b.email);
       if (b.department !== undefined) update.department = sanitizeInput(b.department);
       if (b.access !== undefined) update.access_json = b.access;
-      if (b.password !== undefined) update.password_hash = hashPassword(b.password);
+      if (b.password !== undefined) update.password_hash = hashPassword(b.password, generateSalt());
       if (b.profileImage !== undefined) update.profile_image = b.profileImage;
       if (b.forcePasswordChange !== undefined) update.force_password_change = b.forcePasswordChange;
       await supabaseQuery(`accounts?id=eq.${id}`, 'PATCH', update);

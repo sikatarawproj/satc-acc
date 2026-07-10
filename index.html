@@ -6,8 +6,6 @@
   <title>Sikat Araw Trading Corp. — Wholesale Sales Management System</title>
   <link rel="icon" type="image/png" href="assets/favicon/wholesale-sales-management-favicon.png" />
   <link rel="shortcut icon" href="assets/favicon/wholesale-sales-management.ico" />
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-  <script src="data/seed/invoice-database.js?v=7"></script>
   <link rel="stylesheet" href="frontend/src/css/index.css" />
 </head>
 <body class="auth-locked" data-ui-build="modern-2026" data-ui-phase="13-light" data-theme="dark">
@@ -58,7 +56,7 @@
               <input type="checkbox" id="loginRemember" />
               <span>Remember this device</span>
             </label>
-            <button type="button" class="login-forgot-btn" id="forgotPasswordBtn">Forgot password?</button>
+            <button type="button" class="login-forgot-btn" id="forgotPasswordBtn" style="display:none">Forgot password?</button>
           </div>
 
           <button type="submit" class="login-submit-btn" aria-label="Login">
@@ -2338,6 +2336,8 @@
 
 
   
+  <script src="data/seed/invoice-database.js?v=7"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
   <script src="frontend/src/js/core/state.js"></script>
   <script src="frontend/src/js/core/permissions.js"></script>
   <script src="frontend/src/js/core/sample-data.js"></script>
