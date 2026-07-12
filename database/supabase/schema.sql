@@ -67,6 +67,118 @@ CREATE TABLE IF NOT EXISTS customers (
 
 CREATE INDEX IF NOT EXISTS idx_customers_name ON customers(name);
 
+-- Order slips table
+CREATE TABLE IF NOT EXISTS order_slips (
+    id BIGSERIAL PRIMARY KEY,
+    slip_no VARCHAR(80) NOT NULL UNIQUE,
+    customer VARCHAR(190) NOT NULL DEFAULT '',
+    slip_date DATE NULL,
+    status VARCHAR(40) NOT NULL DEFAULT 'DRAFT',
+    total_amount DECIMAL(18,2) NOT NULL DEFAULT 0,
+    payload_json JSONB NOT NULL DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by VARCHAR(160) NOT NULL DEFAULT 'System',
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_by VARCHAR(160) NOT NULL DEFAULT 'System'
+);
+
+CREATE INDEX IF NOT EXISTS idx_order_slips_customer ON order_slips(customer);
+CREATE INDEX IF NOT EXISTS idx_order_slips_status ON order_slips(status);
+CREATE INDEX IF NOT EXISTS idx_order_slips_slip_date ON order_slips(slip_date);
+
+-- Order slip items table
+CREATE TABLE IF NOT EXISTS order_slip_items (
+    id BIGSERIAL PRIMARY KEY,
+    order_slip_id BIGINT NOT NULL REFERENCES order_slips(id) ON DELETE CASCADE,
+    item_code VARCHAR(80) NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '',
+    quantity DECIMAL(18,4) NOT NULL DEFAULT 0,
+    unit VARCHAR(40) NOT NULL DEFAULT '',
+    unit_price DECIMAL(18,2) NOT NULL DEFAULT 0,
+    line_total DECIMAL(18,2) NOT NULL DEFAULT 0,
+    payload_json JSONB NOT NULL DEFAULT '{}'
+);
+
+CREATE INDEX IF NOT EXISTS idx_order_slip_items_order ON order_slip_items(order_slip_id);
+CREATE INDEX IF NOT EXISTS idx_order_slip_items_code ON order_slip_items(item_code);
+
+-- Transaction slips table
+CREATE TABLE IF NOT EXISTS transaction_slips (
+    id BIGSERIAL PRIMARY KEY,
+    slip_no VARCHAR(80) NOT NULL UNIQUE,
+    order_slip_id BIGINT NULL REFERENCES order_slips(id) ON DELETE SET NULL,
+    customer VARCHAR(190) NOT NULL DEFAULT '',
+    slip_date DATE NULL,
+    status VARCHAR(40) NOT NULL DEFAULT 'PENDING',
+    total_amount DECIMAL(18,2) NOT NULL DEFAULT 0,
+    posted_at TIMESTAMPTZ NULL,
+    posted_by VARCHAR(160) NOT NULL DEFAULT '',
+    payload_json JSONB NOT NULL DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by VARCHAR(160) NOT NULL DEFAULT 'System',
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_by VARCHAR(160) NOT NULL DEFAULT 'System'
+);
+
+CREATE INDEX IF NOT EXISTS idx_transaction_slips_order ON transaction_slips(order_slip_id);
+CREATE INDEX IF NOT EXISTS idx_transaction_slips_customer ON transaction_slips(customer);
+CREATE INDEX IF NOT EXISTS idx_transaction_slips_status ON transaction_slips(status);
+CREATE INDEX IF NOT EXISTS idx_transaction_slips_slip_date ON transaction_slips(slip_date);
+
+-- Transaction slip items table
+CREATE TABLE IF NOT EXISTS transaction_slip_items (
+    id BIGSERIAL PRIMARY KEY,
+    transaction_slip_id BIGINT NOT NULL REFERENCES transaction_slips(id) ON DELETE CASCADE,
+    item_code VARCHAR(80) NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '',
+    quantity DECIMAL(18,4) NOT NULL DEFAULT 0,
+    unit VARCHAR(40) NOT NULL DEFAULT '',
+    unit_price DECIMAL(18,2) NOT NULL DEFAULT 0,
+    line_total DECIMAL(18,2) NOT NULL DEFAULT 0,
+    payload_json JSONB NOT NULL DEFAULT '{}'
+);
+
+CREATE INDEX IF NOT EXISTS idx_transaction_slip_items_slip ON transaction_slip_items(transaction_slip_id);
+CREATE INDEX IF NOT EXISTS idx_transaction_slip_items_code ON transaction_slip_items(item_code);
+
+-- Inventory item master
+CREATE TABLE IF NOT EXISTS inventory_items (
+    id BIGSERIAL PRIMARY KEY,
+    item_code VARCHAR(80) NOT NULL UNIQUE,
+    description TEXT NOT NULL DEFAULT '',
+    category VARCHAR(120) NOT NULL DEFAULT '',
+    unit VARCHAR(40) NOT NULL DEFAULT '',
+    quantity_on_hand DECIMAL(18,4) NOT NULL DEFAULT 0,
+    reorder_level DECIMAL(18,4) NOT NULL DEFAULT 0,
+    unit_cost DECIMAL(18,2) NOT NULL DEFAULT 0,
+    status VARCHAR(40) NOT NULL DEFAULT 'ACTIVE',
+    payload_json JSONB NOT NULL DEFAULT '{}',
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_by VARCHAR(160) NOT NULL DEFAULT 'System'
+);
+
+CREATE INDEX IF NOT EXISTS idx_inventory_items_category ON inventory_items(category);
+CREATE INDEX IF NOT EXISTS idx_inventory_items_status ON inventory_items(status);
+
+-- Inventory movement ledger
+CREATE TABLE IF NOT EXISTS inventory_movements (
+    id BIGSERIAL PRIMARY KEY,
+    item_id BIGINT NULL REFERENCES inventory_items(id) ON DELETE SET NULL,
+    item_code VARCHAR(80) NOT NULL DEFAULT '',
+    movement_type VARCHAR(40) NOT NULL DEFAULT 'ADJUSTMENT',
+    quantity DECIMAL(18,4) NOT NULL DEFAULT 0,
+    reference_type VARCHAR(80) NOT NULL DEFAULT '',
+    reference_id VARCHAR(80) NOT NULL DEFAULT '',
+    remarks TEXT NULL,
+    payload_json JSONB NOT NULL DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by VARCHAR(160) NOT NULL DEFAULT 'System'
+);
+
+CREATE INDEX IF NOT EXISTS idx_inventory_movements_item ON inventory_movements(item_id);
+CREATE INDEX IF NOT EXISTS idx_inventory_movements_code ON inventory_movements(item_code);
+CREATE INDEX IF NOT EXISTS idx_inventory_movements_reference ON inventory_movements(reference_type, reference_id);
+
 -- Audit log table
 CREATE TABLE IF NOT EXISTS audit_log (
     id BIGSERIAL PRIMARY KEY,
@@ -119,11 +231,11 @@ CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created
 -- marco/President@123, admin/Admin@123, encoder/Encoder@123, reviewer/Reviewer@123, viewer/Viewer@123
 INSERT INTO accounts (username, full_name, role, password_hash, access_json, department, email, status, notes, force_password_change, created_by, updated_by)
 VALUES
-    ('marco', 'Marco Qua', 'President', 'pbkdf2-sha512$100000$1df2776d77ca4bb60e09707c3e78099e$6d7f801ff9851a32d1ee90a2f056c87dcef3f93a15a74f59b16c63fecf14ea1f2e1a020a4c97f4d3d69da1c18f1ed40158d314ac6719ca69208b12b7dd03b2c1', '{"tabs":["summarySection","encodeSection","operationsSection","soaSection","agingSection","settingsSection","accountSection","auditSection"],"canEditSummary":true,"canEncode":true,"canCancel":true,"canExport":true,"canResetSample":true,"canAdminReset":true,"canResetOtherPasswords":true}', 'Management', '', 'Active', '', true, 'System', 'System'),
-    ('admin', 'Office Admin', 'Admin', 'pbkdf2-sha512$100000$647876f1ad4a5d164de5552b69201ffb$77b1eb982102fe638c64288f81b7c30350a4732414aeeaab8fa62f724387a7e428c725f25fec3e8ff0fcca24b78672b57355c779fbb29d96dc9a764e5e6e5a88', '{"tabs":["summarySection","encodeSection","operationsSection","soaSection","agingSection","settingsSection","accountSection"],"canEditSummary":true,"canEncode":true,"canCancel":true,"canExport":true,"canResetSample":true,"canAdminReset":true,"canResetOtherPasswords":true}', 'Accounting', '', 'Active', '', true, 'System', 'System'),
-    ('encoder', 'Office Encoder', 'Encoder', 'pbkdf2-sha512$100000$118771bf7fbf3ae79d483da668c6e379$415dc3e0873a8b665ecc3c18b9a5105cca2c442ab5e22ac54c2a05aed42b4bb8ff4d758e0883acf2a4077f17c4772b0395462cc8aaad04feabbe59f00d56e855', '{"tabs":["summarySection","encodeSection","operationsSection","soaSection","agingSection"],"canEditSummary":true,"canEncode":true,"canCancel":false,"canExport":true,"canResetSample":false,"canAdminReset":false,"canResetOtherPasswords":false}', 'Accounting', '', 'Active', '', true, 'System', 'System'),
-    ('reviewer', 'Office Reviewer', 'Reviewer', 'pbkdf2-sha512$100000$3e324e0752ec2b2b2c3a8a29eeace262$ce3bce355e9b4afb6ec35dc3bc7d8b62f4b8717ed6ac1f7aa721c4b70c21f0104ca34c9072294b1e1fa9c86c179c327769bc8710845cbfb8504eb045e95da35f', '{"tabs":["summarySection","operationsSection","soaSection","agingSection"],"canEditSummary":false,"canEncode":false,"canCancel":true,"canExport":true,"canResetSample":false,"canAdminReset":false,"canResetOtherPasswords":false}', 'Accounting', '', 'Active', '', true, 'System', 'System'),
-    ('viewer', 'Office Viewer', 'Viewer', 'pbkdf2-sha512$100000$1ee5c5981c4e276db72aeba15cb159f2$f6f183f40b2e19ffeae193b56591130747110ef8f6ab19436324a622da30557fca76451794d5cc60e543e95f2ea4f794c461aed8a183452a7b70f276e6385022', '{"tabs":["summarySection","operationsSection","soaSection","agingSection"],"canEditSummary":false,"canEncode":false,"canCancel":false,"canExport":true,"canResetSample":false,"canAdminReset":false,"canResetOtherPasswords":false}', 'Accounting', '', 'Active', '', true, 'System', 'System')
+    ('marco', 'Marco Qua', 'President', 'pbkdf2-sha512$100000$1df2776d77ca4bb60e09707c3e78099e$6d7f801ff9851a32d1ee90a2f056c87dcef3f93a15a74f59b16c63fecf14ea1f2e1a020a4c97f4d3d69da1c18f1ed40158d314ac6719ca69208b12b7dd03b2c1', '{"tabs":["summarySection","encodeSection","operationsSection","soaSection","agingSection","settingsSection","accountSection","auditSection"],"canEditSummary":true,"canEncode":true,"canCancel":true,"canExport":true,"canResetSample":true,"canAdminReset":true,"canResetOtherPasswords":true,"canCreateOrderSlip":true,"canApproveOrderSlip":true,"canPostTransactionSlip":true,"canAdjustInventory":true,"canViewInventoryCost":true}', 'Management', '', 'Active', '', true, 'System', 'System'),
+    ('admin', 'Office Admin', 'Admin', 'pbkdf2-sha512$100000$647876f1ad4a5d164de5552b69201ffb$77b1eb982102fe638c64288f81b7c30350a4732414aeeaab8fa62f724387a7e428c725f25fec3e8ff0fcca24b78672b57355c779fbb29d96dc9a764e5e6e5a88', '{"tabs":["summarySection","encodeSection","operationsSection","soaSection","agingSection","settingsSection","accountSection"],"canEditSummary":true,"canEncode":true,"canCancel":true,"canExport":true,"canResetSample":true,"canAdminReset":true,"canResetOtherPasswords":true,"canCreateOrderSlip":true,"canApproveOrderSlip":true,"canPostTransactionSlip":true,"canAdjustInventory":true,"canViewInventoryCost":true}', 'Accounting', '', 'Active', '', true, 'System', 'System'),
+    ('encoder', 'Office Encoder', 'Encoder', 'pbkdf2-sha512$100000$118771bf7fbf3ae79d483da668c6e379$415dc3e0873a8b665ecc3c18b9a5105cca2c442ab5e22ac54c2a05aed42b4bb8ff4d758e0883acf2a4077f17c4772b0395462cc8aaad04feabbe59f00d56e855', '{"tabs":["summarySection","encodeSection","operationsSection","soaSection","agingSection"],"canEditSummary":true,"canEncode":true,"canCancel":false,"canExport":true,"canResetSample":false,"canAdminReset":false,"canResetOtherPasswords":false,"canCreateOrderSlip":true,"canApproveOrderSlip":false,"canPostTransactionSlip":false,"canAdjustInventory":false,"canViewInventoryCost":false}', 'Accounting', '', 'Active', '', true, 'System', 'System'),
+    ('reviewer', 'Office Reviewer', 'Reviewer', 'pbkdf2-sha512$100000$3e324e0752ec2b2b2c3a8a29eeace262$ce3bce355e9b4afb6ec35dc3bc7d8b62f4b8717ed6ac1f7aa721c4b70c21f0104ca34c9072294b1e1fa9c86c179c327769bc8710845cbfb8504eb045e95da35f', '{"tabs":["summarySection","operationsSection","soaSection","agingSection"],"canEditSummary":false,"canEncode":false,"canCancel":true,"canExport":true,"canResetSample":false,"canAdminReset":false,"canResetOtherPasswords":false,"canCreateOrderSlip":false,"canApproveOrderSlip":false,"canPostTransactionSlip":false,"canAdjustInventory":false,"canViewInventoryCost":false}', 'Accounting', '', 'Active', '', true, 'System', 'System'),
+    ('viewer', 'Office Viewer', 'Viewer', 'pbkdf2-sha512$100000$1ee5c5981c4e276db72aeba15cb159f2$f6f183f40b2e19ffeae193b56591130747110ef8f6ab19436324a622da30557fca76451794d5cc60e543e95f2ea4f794c461aed8a183452a7b70f276e6385022', '{"tabs":["summarySection","operationsSection","soaSection","agingSection"],"canEditSummary":false,"canEncode":false,"canCancel":false,"canExport":true,"canResetSample":false,"canAdminReset":false,"canResetOtherPasswords":false,"canCreateOrderSlip":false,"canApproveOrderSlip":false,"canPostTransactionSlip":false,"canAdjustInventory":false,"canViewInventoryCost":false}', 'Accounting', '', 'Active', '', true, 'System', 'System')
 ON CONFLICT (username) DO NOTHING;
 
 -- Insert default settings

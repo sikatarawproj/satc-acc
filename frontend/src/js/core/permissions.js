@@ -14,6 +14,11 @@
       "canResetSample",
       "canAdminReset",
       "canResetOtherPasswords",
+      "canCreateOrderSlip",
+      "canApproveOrderSlip",
+      "canPostTransactionSlip",
+      "canAdjustInventory",
+      "canViewInventoryCost",
     ];
     const ROLE_PERMISSIONS = {
       President: {
@@ -25,6 +30,11 @@
         canResetSample: true,
         canExport: true,
         canResetOtherPasswords: true,
+        canCreateOrderSlip: true,
+        canApproveOrderSlip: true,
+        canPostTransactionSlip: true,
+        canAdjustInventory: true,
+        canViewInventoryCost: true,
       },
       Admin: {
         tabs: ["summarySection", "encodeSection", "operationsSection", "soaSection", "agingSection", "settingsSection", "accountSection", "auditSection"],
@@ -35,6 +45,11 @@
         canResetSample: true,
         canExport: true,
         canResetOtherPasswords: true,
+        canCreateOrderSlip: true,
+        canApproveOrderSlip: true,
+        canPostTransactionSlip: true,
+        canAdjustInventory: true,
+        canViewInventoryCost: true,
       },
       Encoder: {
         tabs: ["summarySection", "encodeSection", "operationsSection", "soaSection", "agingSection"],
@@ -45,6 +60,11 @@
         canResetSample: false,
         canExport: true,
         canResetOtherPasswords: false,
+        canCreateOrderSlip: true,
+        canApproveOrderSlip: false,
+        canPostTransactionSlip: false,
+        canAdjustInventory: false,
+        canViewInventoryCost: false,
       },
       Reviewer: {
         tabs: ["summarySection", "operationsSection", "soaSection", "agingSection"],
@@ -55,6 +75,11 @@
         canResetSample: false,
         canExport: true,
         canResetOtherPasswords: false,
+        canCreateOrderSlip: false,
+        canApproveOrderSlip: false,
+        canPostTransactionSlip: false,
+        canAdjustInventory: false,
+        canViewInventoryCost: false,
       },
       Viewer: {
         tabs: ["summarySection", "operationsSection", "soaSection", "agingSection"],
@@ -65,6 +90,11 @@
         canResetSample: false,
         canExport: false,
         canResetOtherPasswords: false,
+        canCreateOrderSlip: false,
+        canApproveOrderSlip: false,
+        canPostTransactionSlip: false,
+        canAdjustInventory: false,
+        canViewInventoryCost: false,
       },
     };
     function clonePermissionProfile(profile) {

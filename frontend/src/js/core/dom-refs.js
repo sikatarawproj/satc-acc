@@ -112,6 +112,7 @@
       analyticsTopExposureSub: document.getElementById("analyticsTopExposureSub"),
       summaryRangeChip: document.getElementById("summaryRangeChip"),
       metaRole: document.getElementById("metaRole"),
+      metaDbStatus: document.getElementById("metaDbStatus"),
       metaLastSaved: document.getElementById("metaLastSaved"),
       toastRegion: document.getElementById("toastRegion"),
       heroSummaryChart: document.getElementById("heroSummaryChart"),

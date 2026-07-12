@@ -106,14 +106,126 @@ function resetLoginAttempts(username) {
   loginAttempts.delete(username.toLowerCase());
 }
 
-async function supabaseQuery(table, method = 'GET', body = null) {
+async function supabaseQuery(table, method = 'GET', body = null, prefer = null) {
   const url = `${SUPABASE_URL}/rest/v1/${table}`;
-  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal' };
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': prefer || (method === 'POST' ? 'return=representation' : 'return=minimal')
+  };
   const opts = { method, headers };
   if (body && method !== 'GET') opts.body = JSON.stringify(body);
   const res = await fetch(url, opts);
-  if (!res.ok) throw new Error(`Supabase ${res.status}`);
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw new Error(`Supabase ${res.status}${detail ? `: ${detail.slice(0, 240)}` : ''}`);
+  }
   return res.json();
+}
+
+function cleanText(value, max = 500) {
+  return sanitizeInput(String(value ?? '').slice(0, max));
+}
+
+function toNumber(value, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function toDateOrNull(value) {
+  const raw = String(value || '').trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : null;
+}
+
+function normalizeStatus(value, fallback = 'NOTDUE') {
+  const status = String(value || fallback).trim().toUpperCase();
+  return status || fallback;
+}
+
+function normalizeTransactionRow(row = {}) {
+  const payload = row.payload_json && typeof row.payload_json === 'object' ? row.payload_json : {};
+  return {
+    ...payload,
+    id: row.id,
+    invNo: payload.invNo || row.inv_no || '',
+    customer: payload.customer || row.customer || '',
+    date: payload.date || row.invoice_date || '',
+    dueDate: payload.dueDate || row.due_date || '',
+    status: payload.status || row.status || 'NOTDUE',
+    receivable: toNumber(payload.receivable ?? row.receivable, 0),
+    createdAt: payload.createdAt || row.created_at || '',
+    updatedAt: payload.updatedAt || row.updated_at || '',
+  };
+}
+
+function buildTransactionRow(tx = {}, index = 0) {
+  const payload = tx.payload_json && typeof tx.payload_json === 'object' ? { ...tx.payload_json } : { ...tx };
+  const invNo = cleanText(tx.invNo || tx.inv_no || tx.invoiceNo || payload.invNo || payload.invoiceNo || `AUTO-${Date.now()}-${index}`, 80);
+  const customer = cleanText(tx.customer || tx.customer_name || payload.customer || '', 190);
+  const invoiceDate = toDateOrNull(tx.date || tx.invoice_date || payload.date);
+  const dueDate = toDateOrNull(tx.dueDate || tx.due_date || payload.dueDate);
+  const status = normalizeStatus(tx.status || payload.status);
+  const receivable = toNumber(tx.receivable ?? payload.receivable, 0);
+  return {
+    inv_no: invNo,
+    customer,
+    invoice_date: invoiceDate,
+    due_date: dueDate,
+    status,
+    receivable,
+    payload_json: {
+      ...payload,
+      invNo,
+      customer,
+      date: invoiceDate || payload.date || '',
+      dueDate: dueDate || payload.dueDate || '',
+      status,
+      receivable,
+      updatedAt: new Date().toISOString(),
+    },
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function normalizeCustomerRow(row = {}) {
+  const payload = row.payload_json && typeof row.payload_json === 'object' ? row.payload_json : {};
+  return {
+    ...payload,
+    id: row.id,
+    name: payload.name || row.name || '',
+    updatedAt: payload.updatedAt || row.updated_at || '',
+  };
+}
+
+function buildCustomerRow(profile = {}) {
+  const payload = profile.payload_json && typeof profile.payload_json === 'object' ? { ...profile.payload_json } : { ...profile };
+  const name = cleanText(profile.name || profile.customer || payload.name || '', 190);
+  return {
+    name,
+    payload_json: {
+      ...payload,
+      name,
+      updatedAt: new Date().toISOString(),
+    },
+    updated_at: new Date().toISOString(),
+    updated_by: cleanText(profile.updatedBy || profile.updated_by || 'System', 160),
+  };
+}
+
+function buildAuditRow(entry = {}) {
+  return {
+    action: cleanText(entry.action || 'Action', 160),
+    inv_no: cleanText(entry.invNo || entry.inv_no || '', 80),
+    customer: cleanText(entry.customer || '', 190),
+    actor: cleanText(entry.actor || 'System', 190),
+    detail: cleanText([entry.detail, entry.reason ? `Reason: ${entry.reason}` : '', entry.changes ? `Changes: ${entry.changes}` : ''].filter(Boolean).join(' | '), 2000),
+    before_json: entry.before && typeof entry.before === 'object' ? entry.before : null,
+    after_json: entry.after && typeof entry.after === 'object' ? entry.after : null,
+    fields_json: Array.isArray(entry.fields) ? entry.fields : (entry.changes ? String(entry.changes).split(';').map((item) => item.trim()).filter(Boolean) : []),
+    entity_type: cleanText(entry.entityType || entry.module || 'general', 80),
+    entity_id: cleanText(entry.entityId || entry.invNo || entry.inv_no || '', 80),
+  };
 }
 
 function json(res, data, status = 200) {
@@ -344,12 +456,13 @@ module.exports = async (req, res) => {
       return json(res, { ok: true });
     }
 
-    // Transactions (admin/president only for write)
+    // Transactions
     if (path === '/api/transactions' || path.startsWith('/api/transactions/')) {
       if (method === 'GET') {
-        const data = await supabaseQuery('transactions?order=created_at.desc&limit=500');
+        const limit = Math.min(Math.max(Number(url.searchParams.get('limit') || 500), 1), 10000);
+        const data = await supabaseQuery(`transactions?select=*&order=created_at.desc&limit=${limit}`);
         logRequest(req, 200);
-        return json(res, data);
+        return json(res, data.map(normalizeTransactionRow));
       }
       const token = req.headers.authorization?.replace('Bearer ', '') || '';
       if (!token.startsWith('local-')) {
@@ -367,14 +480,24 @@ module.exports = async (req, res) => {
         return json(res, { error: 'Insufficient permissions' }, 403);
       }
       if (method === 'POST') {
-        const data = await supabaseQuery('transactions', 'POST', req.body);
+        const rows = Array.isArray(req.body?.transactions)
+          ? req.body.transactions
+          : Array.isArray(req.body)
+            ? req.body
+            : [req.body || {}];
+        const payload = rows.filter(Boolean).map(buildTransactionRow).filter((row) => row.inv_no);
+        if (!payload.length) {
+          logRequest(req, 400);
+          return json(res, { error: 'No valid transactions supplied' }, 400);
+        }
+        const data = await supabaseQuery('transactions?on_conflict=inv_no', 'POST', payload, 'resolution=merge-duplicates,return=representation');
         logRequest(req, 201);
-        return json(res, data[0], 201);
+        return json(res, Array.isArray(req.body?.transactions) || Array.isArray(req.body) ? data.map(normalizeTransactionRow) : normalizeTransactionRow(data[0]), 201);
       }
       if (method === 'PUT') {
         const id = path.split('/').pop();
         if (!validateId(id)) { logRequest(req, 400); return json(res, { error: 'Invalid ID' }, 400); }
-        await supabaseQuery(`transactions?id=eq.${id}`, 'PATCH', req.body);
+        await supabaseQuery(`transactions?id=eq.${id}`, 'PATCH', buildTransactionRow(req.body));
         logRequest(req, 200);
         return json(res, { ok: true });
       }
@@ -387,23 +510,72 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Customers (read-only)
+    // Customers
     if (path === '/api/customers') {
-      const data = await supabaseQuery('customers?select=*&order=name');
-      logRequest(req, 200);
-      return json(res, data);
+      if (method === 'GET') {
+        const data = await supabaseQuery('customers?select=*&order=name');
+        logRequest(req, 200);
+        return json(res, data.map(normalizeCustomerRow));
+      }
+      const token = req.headers.authorization?.replace('Bearer ', '') || '';
+      if (!token.startsWith('local-')) {
+        logRequest(req, 401);
+        return json(res, { error: 'Authentication required' }, 401);
+      }
+      const accountId = token.replace('local-', '');
+      if (!validateId(accountId)) {
+        logRequest(req, 400);
+        return json(res, { error: 'Invalid token' }, 400);
+      }
+      const users = await supabaseQuery(`accounts?id=eq.${accountId}&select=role`);
+      if (!users[0] || !['Admin', 'President', 'Encoder'].includes(users[0].role)) {
+        logRequest(req, 403);
+        return json(res, { error: 'Insufficient permissions' }, 403);
+      }
+      if (method === 'POST') {
+        const rows = Array.isArray(req.body?.profiles)
+          ? req.body.profiles
+          : Array.isArray(req.body)
+            ? req.body
+            : [req.body || {}];
+        const payload = rows.filter(Boolean).map(buildCustomerRow).filter((row) => row.name);
+        if (!payload.length) {
+          logRequest(req, 400);
+          return json(res, { error: 'No valid customer profiles supplied' }, 400);
+        }
+        const data = await supabaseQuery('customers?on_conflict=name', 'POST', payload, 'resolution=merge-duplicates,return=representation');
+        logRequest(req, 201);
+        return json(res, data.map(normalizeCustomerRow), 201);
+      }
     }
 
     // Audit log
     if (path === '/api/audit') {
       if (method === 'POST') {
-        await supabaseQuery('audit_log', 'POST', req.body).catch(() => {});
+        await supabaseQuery('audit_log', 'POST', buildAuditRow(req.body)).catch((err) => console.warn('Audit sync failed:', err.message));
         logRequest(req, 200);
         return json(res, { ok: true });
       }
-      const data = await supabaseQuery('audit_log?order=created_at.desc&limit=500');
+      const limit = Math.min(Math.max(Number(url.searchParams.get('limit') || 500), 1), 1000);
+      const data = await supabaseQuery(`audit_log?order=created_at.desc&limit=${limit}`);
       logRequest(req, 200);
       return json(res, data);
+    }
+
+    // Operations foundation: order slips, transaction slips, and inventory
+    if (path === '/api/operations/status') {
+      const tables = ['order_slips', 'transaction_slips', 'inventory_items', 'inventory_movements'];
+      const checks = {};
+      for (const table of tables) {
+        try {
+          await supabaseQuery(`${table}?select=id&limit=1`);
+          checks[table] = 'ready';
+        } catch {
+          checks[table] = 'missing';
+        }
+      }
+      logRequest(req, 200);
+      return json(res, { ok: true, module: 'under-construction', tables: checks });
     }
 
     // Settings (admin only for write)
@@ -428,7 +600,7 @@ module.exports = async (req, res) => {
         logRequest(req, 403);
         return json(res, { error: 'Insufficient permissions' }, 403);
       }
-      await supabaseQuery('settings', 'POST', { id: 1, payload_json: req.body, updated_at: new Date().toISOString() });
+      await supabaseQuery('settings?on_conflict=id', 'POST', { id: 1, payload_json: req.body, updated_at: new Date().toISOString() }, 'resolution=merge-duplicates,return=minimal');
       logRequest(req, 200);
       return json(res, { ok: true });
     }

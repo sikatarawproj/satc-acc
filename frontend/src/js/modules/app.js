@@ -469,6 +469,9 @@
       if (perms.canResetSample) labels.push("Reset");
       if (perms.canResetOtherPasswords) labels.push("Passwords");
       if (perms.canAdminReset) labels.push("Admin");
+      if (perms.canCreateOrderSlip) labels.push("Orders");
+      if (perms.canPostTransactionSlip) labels.push("Posting");
+      if (perms.canAdjustInventory) labels.push("Inventory");
       return labels.length ? labels.join(" / ") : "Restricted";
     }
 
@@ -768,20 +771,28 @@
     }
 
     async function saveTransactions() {
+      let dbSynced = false;
       try {
         await apiJson("/api/transactions", {
           method: "POST",
           body: JSON.stringify({ transactions: state.transactions || [] }),
         });
+        dbSynced = true;
+        setDatabaseStatus("Database: synced", "success");
       } catch (err) {
         console.warn("Could not sync transactions to backend", err);
+        setDatabaseStatus("Database: sync failed", "danger");
       }
       try {
         localStorage.setItem(`${STORAGE_KEY}-transactions`, JSON.stringify(state.transactions || []));
       } catch (err) {
         console.warn("Could not save transactions to localStorage", err);
       }
-      if (els.metaLastSaved) els.metaLastSaved.textContent = `Saved ${new Date().toLocaleTimeString("en-PH")}`;
+      if (els.metaLastSaved) {
+        els.metaLastSaved.textContent = dbSynced
+          ? `DB synced ${new Date().toLocaleTimeString("en-PH")}`
+          : `Local saved ${new Date().toLocaleTimeString("en-PH")}`;
+      }
     }
 
     function saveSoaHeader() {
@@ -1018,6 +1029,15 @@
       return getEffectivePermissions(state.currentUser);
     }
 
+    function setDatabaseStatus(text, kind = "") {
+      if (!els.metaDbStatus) return;
+      els.metaDbStatus.textContent = text;
+      els.metaDbStatus.classList.remove("status-success", "status-danger", "status-warning");
+      if (kind === "success") els.metaDbStatus.classList.add("status-success");
+      if (kind === "danger") els.metaDbStatus.classList.add("status-danger");
+      if (kind === "warning") els.metaDbStatus.classList.add("status-warning");
+    }
+
     function setLoginApiStatus(text, kind = "") {
       if (!els.loginApiStatusChip) return;
       els.loginApiStatusChip.textContent = text;
@@ -1030,16 +1050,20 @@
       if (!els.loginApiStatusChip) return;
       if (!APP_API_BASE && location.protocol === "file:") {
         setLoginApiStatus("Local mode (no API)", "success");
+        setDatabaseStatus("Database: local mode", "warning");
         return;
       }
       setLoginApiStatus("API: checking...");
+      setDatabaseStatus("Database: checking");
       try {
         const endpoint = resolveApiEndpoint("/api/health");
         const response = await fetch(endpoint, { cache: "no-store" });
+        let dbStatus = "";
         let ok = response.ok;
         if (ok) {
           try {
             const data = await response.clone().json();
+            dbStatus = data?.db || "";
             ok = data?.ok !== false && data?.status !== "error" && data?.success !== false;
           } catch {
             ok = response.ok;
@@ -1047,11 +1071,14 @@
         }
         if (ok) {
           setLoginApiStatus("API: connected", "success");
+          setDatabaseStatus(dbStatus === "connected" ? "Database: connected" : "Database: API only", dbStatus === "connected" ? "success" : "warning");
           return;
         }
         setLoginApiStatus("Local mode (API unavailable)", "success");
+        setDatabaseStatus("Database: unavailable", "warning");
       } catch {
         setLoginApiStatus("Local mode (no API)", "success");
+        setDatabaseStatus("Database: offline", "warning");
       }
     }
 
