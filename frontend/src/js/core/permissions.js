@@ -1,6 +1,7 @@
     const ACCOUNT_PERMISSION_KEYS = [
       "summarySection",
       "encodeSection",
+      "operationsSection",
       "soaSection",
       "agingSection",
       "settingsSection",
@@ -16,7 +17,7 @@
     ];
     const ROLE_PERMISSIONS = {
       President: {
-        tabs: ["summarySection", "encodeSection", "soaSection", "agingSection", "settingsSection", "accountSection", "auditSection"],
+        tabs: ["summarySection", "encodeSection", "operationsSection", "soaSection", "agingSection", "settingsSection", "accountSection", "auditSection"],
         canEditSummary: true,
         canEncode: true,
         canCancel: true,
@@ -26,7 +27,7 @@
         canResetOtherPasswords: true,
       },
       Admin: {
-        tabs: ["summarySection", "encodeSection", "soaSection", "agingSection", "settingsSection", "accountSection", "auditSection"],
+        tabs: ["summarySection", "encodeSection", "operationsSection", "soaSection", "agingSection", "settingsSection", "accountSection", "auditSection"],
         canEditSummary: true,
         canEncode: true,
         canCancel: true,
@@ -36,7 +37,7 @@
         canResetOtherPasswords: true,
       },
       Encoder: {
-        tabs: ["summarySection", "encodeSection", "soaSection", "agingSection"],
+        tabs: ["summarySection", "encodeSection", "operationsSection", "soaSection", "agingSection"],
         canEditSummary: true,
         canEncode: true,
         canCancel: false,
@@ -46,7 +47,7 @@
         canResetOtherPasswords: false,
       },
       Reviewer: {
-        tabs: ["summarySection", "soaSection", "agingSection"],
+        tabs: ["summarySection", "operationsSection", "soaSection", "agingSection"],
         canEditSummary: false,
         canEncode: false,
         canCancel: false,
@@ -56,7 +57,7 @@
         canResetOtherPasswords: false,
       },
       Viewer: {
-        tabs: ["summarySection", "soaSection", "agingSection"],
+        tabs: ["summarySection", "operationsSection", "soaSection", "agingSection"],
         canEditSummary: false,
         canEncode: false,
         canCancel: false,
@@ -83,6 +84,9 @@
       Object.entries(overrides).forEach(([key, value]) => {
         if (key === "tabs") {
           if (Array.isArray(value)) merged.tabs = value.slice();
+          if (ROLE_PERMISSIONS[role]?.tabs?.includes("operationsSection") && !merged.tabs.includes("operationsSection")) {
+            merged.tabs.splice(Math.min(2, merged.tabs.length), 0, "operationsSection");
+          }
           return;
         }
         if (typeof value === "boolean") {

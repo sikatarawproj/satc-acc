@@ -313,6 +313,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         <span class="nav-label">Encoding</span>
       </button>
+      <button class="sidebar-nav-item" data-tab="operationsSection" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/></svg>
+        <span class="nav-label">Order &amp; Inventory</span>
+      </button>
       <button class="sidebar-nav-item" data-tab="soaSection" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         <span class="nav-label">Statement of Account</span>
@@ -463,6 +467,7 @@
         <div class="tabs no-print">
           <button class="tab-btn active" data-tab="summarySection">Wholesale Sales Summary</button>
           <button class="tab-btn" data-tab="encodeSection">Encoding</button>
+          <button class="tab-btn" data-tab="operationsSection">Order &amp; Inventory</button>
           <button class="tab-btn" data-tab="soaSection">Statement of Account</button>
           <button class="tab-btn" data-tab="agingSection">Aging Report</button>
           <button class="tab-btn" data-tab="settingsSection">Settings</button>
@@ -1295,6 +1300,140 @@
         </div>
       </section>
 
+      <section class="section" id="operationsSection">
+        <div class="panel operations-panel">
+          <div class="section-head operations-head">
+            <div class="section-title">
+              <div class="operations-title-row">
+                <h2>Order &amp; Inventory</h2>
+                <span class="construction-badge">Under Construction</span>
+              </div>
+              <p>Prepare order slips, transaction slips, and inventory movement records.</p>
+            </div>
+            <div class="operations-head-actions no-print">
+              <button class="btn btn-secondary" type="button" disabled>Save Draft</button>
+              <button class="btn btn-primary" type="button" disabled>Post Transaction</button>
+            </div>
+          </div>
+
+          <div class="construction-banner" role="status">
+            <strong>Module shell only.</strong>
+            <span>These forms are visible for layout review. Saving, posting, and inventory updates are disabled until the workflow is approved.</span>
+          </div>
+
+          <div class="operations-tabs" role="tablist" aria-label="Order and inventory workflow">
+            <button class="operations-tab active" type="button" aria-selected="true">Order Slip</button>
+            <button class="operations-tab" type="button" aria-selected="false">Transaction Slip</button>
+            <button class="operations-tab" type="button" aria-selected="false">Inventory</button>
+          </div>
+
+          <div class="operations-grid">
+            <div class="operations-card operations-card-large">
+              <div class="operations-card-head">
+                <div>
+                  <span class="operations-kicker">Order Slip</span>
+                  <h3>Order Slip Details</h3>
+                </div>
+                <span class="operations-status">Draft</span>
+              </div>
+              <div class="operations-form-grid">
+                <label>Order Slip No.<input type="text" value="OS-2026-0001" disabled /></label>
+                <label>Date<input type="date" disabled /></label>
+                <label>Customer<input type="text" placeholder="Select or type customer" disabled /></label>
+                <label>Sales Rep / Encoder<input type="text" placeholder="Current user" disabled /></label>
+                <label>Payment Terms<input type="text" value="30 Days" disabled /></label>
+                <label class="span-2">Remarks<textarea rows="3" placeholder="Internal order notes" disabled></textarea></label>
+              </div>
+              <div class="operations-table-wrap">
+                <table class="operations-table">
+                  <thead>
+                    <tr>
+                      <th>Item Code</th>
+                      <th>Description</th>
+                      <th>Qty</th>
+                      <th>Unit</th>
+                      <th>Price</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><input type="text" disabled /></td>
+                      <td><input type="text" disabled /></td>
+                      <td><input type="number" value="0" disabled /></td>
+                      <td><input type="text" value="pcs" disabled /></td>
+                      <td><input type="number" value="0" disabled /></td>
+                      <td class="num">PHP 0.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="operations-actions">
+                <button class="btn btn-secondary" type="button" disabled>Add Item</button>
+                <button class="btn btn-secondary" type="button" disabled>Approve</button>
+                <button class="btn btn-primary" type="button" disabled>Convert to Transaction</button>
+              </div>
+            </div>
+
+            <aside class="operations-card operations-summary-card">
+              <span class="operations-kicker">Slip Summary</span>
+              <div class="operations-metric"><span>Total Quantity</span><strong>0</strong></div>
+              <div class="operations-metric"><span>Gross Amount</span><strong>PHP 0.00</strong></div>
+              <div class="operations-metric"><span>Status</span><strong>Under Review</strong></div>
+              <div class="operations-note">Order slips will later convert into transaction slips before any inventory deduction occurs.</div>
+            </aside>
+          </div>
+
+          <div class="operations-grid three-col">
+            <div class="operations-card">
+              <div class="operations-card-head compact">
+                <div>
+                  <span class="operations-kicker">Transaction Slip</span>
+                  <h3>Posting Preview</h3>
+                </div>
+              </div>
+              <div class="operations-form-grid single">
+                <label>Transaction Slip No.<input type="text" value="TS-2026-0001" disabled /></label>
+                <label>Linked Order Slip<input type="text" value="OS-2026-0001" disabled /></label>
+                <label>Status<input type="text" value="Pending" disabled /></label>
+              </div>
+              <ul class="operations-checklist">
+                <li>Inventory deduction: Pending</li>
+                <li>Receivable transaction: Pending</li>
+                <li>Audit log: Pending</li>
+              </ul>
+            </div>
+
+            <div class="operations-card">
+              <div class="operations-card-head compact">
+                <div>
+                  <span class="operations-kicker">Inventory</span>
+                  <h3>Stock Overview</h3>
+                </div>
+              </div>
+              <div class="operations-metric"><span>Total SKUs</span><strong>0</strong></div>
+              <div class="operations-metric"><span>Low Stock</span><strong>0</strong></div>
+              <div class="operations-metric"><span>Out of Stock</span><strong>0</strong></div>
+              <button class="btn btn-secondary" type="button" disabled>Record Movement</button>
+            </div>
+
+            <div class="operations-card">
+              <div class="operations-card-head compact">
+                <div>
+                  <span class="operations-kicker">Controls</span>
+                  <h3>Next Build Items</h3>
+                </div>
+              </div>
+              <ul class="operations-checklist">
+                <li>Order slip numbering and approval rules</li>
+                <li>Transaction slip posting rules</li>
+                <li>Inventory item master and stock movement audit</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="section" id="soaSection">
         <div class="panel soa-v4-panel">
           <div class="section-head no-print">
@@ -2001,6 +2140,7 @@
                       <div class="account-permission-grid" id="accountPermissionGrid">
                         <label class="permission-check"><input type="checkbox" data-account-permission="summarySection" /> Wholesale Sales Summary</label>
             <label class="permission-check"><input type="checkbox" data-account-permission="encodeSection" /> Encoding</label>
+                        <label class="permission-check"><input type="checkbox" data-account-permission="operationsSection" /> Order &amp; Inventory</label>
                         <label class="permission-check"><input type="checkbox" data-account-permission="soaSection" /> Statement of Account</label>
                         <label class="permission-check"><input type="checkbox" data-account-permission="agingSection" /> Aging Report</label>
                         <label class="permission-check"><input type="checkbox" data-account-permission="settingsSection" /> Settings</label>

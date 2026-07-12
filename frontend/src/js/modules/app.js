@@ -460,6 +460,7 @@
       const labels = [];
       if (perms.tabs?.includes("summarySection")) labels.push("Summary");
       if (perms.tabs?.includes("encodeSection")) labels.push("Encoding");
+      if (perms.tabs?.includes("operationsSection")) labels.push("Order & Inventory");
       if (perms.tabs?.includes("soaSection")) labels.push("SOA");
       if (perms.tabs?.includes("agingSection")) labels.push("Aging");
       if (perms.tabs?.includes("accountSection")) labels.push("Accounts");
@@ -493,7 +494,7 @@
       const perms = getEffectivePermissions(user);
       checks.forEach((input) => {
         const key = input.dataset.accountPermission;
-        if (key === "summarySection" || key === "encodeSection" || key === "soaSection" || key === "agingSection" || key === "settingsSection" || key === "accountSection") {
+        if (key === "summarySection" || key === "encodeSection" || key === "operationsSection" || key === "soaSection" || key === "agingSection" || key === "settingsSection" || key === "accountSection") {
           input.checked = Array.isArray(perms.tabs) && perms.tabs.includes(key);
           input.disabled = false;
         } else if (key && key in perms) {
@@ -542,7 +543,7 @@
       checks.forEach((input) => {
         const key = input.dataset.accountPermission;
         if (!key) return;
-        if (key === "summarySection" || key === "encodeSection" || key === "soaSection" || key === "agingSection" || key === "accountSection") {
+        if (key === "summarySection" || key === "encodeSection" || key === "operationsSection" || key === "soaSection" || key === "agingSection" || key === "settingsSection" || key === "accountSection") {
           overrides.tabs = overrides.tabs || [];
           if (input.checked) overrides.tabs.push(key);
           return;
@@ -6359,6 +6360,7 @@
     const pageInfo = {
       summarySection: { title: "Wholesale Sales Summary", subtitle: "Real-time overview of sales performance, collections, and receivables." },
       encodeSection: { title: "Encoding", subtitle: "Create and manage sales invoices and transactions." },
+      operationsSection: { title: "Order & Inventory", subtitle: "Prepare order slips, transaction slips, and stock movement records." },
       soaSection: { title: "Statement of Account", subtitle: "View customer balance and transaction details." },
       agingSection: { title: "Aging Report", subtitle: "Review customer receivables by aging bucket for collections follow-up." },
       settingsSection: { title: "Settings", subtitle: "Configure system settings and defaults." },
